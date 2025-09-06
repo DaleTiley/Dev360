@@ -1,0 +1,195 @@
+﻿<style>
+    /* Scope everything so we don't affect other pages */
+    .project-general .detail-header {
+        padding: .75rem 1rem;
+        /*      background:#fff;*/
+        border-bottom: 1px solid rgba(0,0,0,.06);
+    }
+    .project-general .detail-header .btn{ /* quieter header buttons */
+      border-color: rgba(0,0,0,.15);
+    }
+
+    .project-general .badge-code{
+      background:#f8fafc; color:#0f172a; border:1px solid rgba(0,0,0,.12);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-weight:600;
+    }
+    .project-general .badge-status{
+      border:1px solid rgba(0,0,0,.08);
+    }
+
+    /* Section headings */
+    .project-general .section-title{
+      font-weight:600; color:#0f172a; letter-spacing:.2px;
+    }
+
+    /* Key/Value grid (labels left, values right) */
+    .project-general .kv{
+      display:grid; grid-template-columns: 160px 1fr; gap:.25rem .75rem;
+      padding:.4rem 0; border-bottom:1px solid rgba(0,0,0,.05); align-items:start;
+    }
+    .project-general .kv:last-child{ border-bottom:0; }
+    .project-general .kv .k{
+      color:#6b7280; font-weight:600; display:flex; gap:.5rem; align-items:center;
+    }
+    .project-general .kv .k i{ font-size:.9rem; opacity:.55; }     /* tone down icons */
+    .project-general .kv .v a{ text-decoration:none; }
+    .project-general .kv .v a:hover{ text-decoration:underline; }
+
+    /* Map card: subtle frame */
+    .project-general .map-embed--sm{
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:.5rem; overflow:hidden; background:#fff;
+      box-shadow:0 2px 4px rgba(0,0,0,.04);
+    }
+    .project-general .map-embed--sm iframe{ width:100%; height:420px; }
+
+    /* Optional: shrink header actions on narrow screens */
+    @@media (max-width: 768px){
+      .project-general .detail-header{ row-gap:.5rem; }
+      .project-general .detail-header .btn{ padding:.25rem .5rem; font-size:.85rem; }
+    }
+</style>
+
+@model MillenniumWebFixed.Models.Project
+@using System
+@{
+    var status = (Model.Status ?? "Active").Trim();
+    var statusClass =
+        status.Equals("Active", StringComparison.OrdinalIgnoreCase) ? "bg-success" :
+        status.Equals("On Hold", StringComparison.OrdinalIgnoreCase) ? "bg-warning text-dark" :
+        status.Equals("Closed", StringComparison.OrdinalIgnoreCase) ? "bg-secondary" :
+        status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase) ? "bg-danger" : "bg-secondary";
+
+    string join(params string[] parts) => string.Join(", ", parts ?? Array.Empty<string>())
+        .Replace(",,", ",").Trim().Trim(',');
+
+    var addressLine = join(Model.SiteAddress1, Model.SiteAddress2, Model.SiteCity, Model.SiteProvince, Model.SitePostcode);
+
+    var baseQuery = !string.IsNullOrWhiteSpace(Model.GoogleMapUrl)
+        ? Model.GoogleMapUrl
+        : ("https://www.google.com/maps?q=" + Uri.EscapeDataString(addressLine ?? ""));
+    var embedSrc = string.IsNullOrWhiteSpace(baseQuery)
+        ? null
+        : baseQuery + (baseQuery.Contains("?") ? "&" : "?") + "output=embed";
+
+    var mapModalId = $"mapModal-{Model.Id}";
+}
+
+<div class="card card-elev project-general">
+    <!-- Header -->
+    <div class="detail-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <h5 class="mb-0 fw-semibold">Project Details</h5>
+            <span class="badge badge-code p-2">@Model.ProjectCode</span>
+            <span class="badge @statusClass badge-status p-2">@status</span>
+        </div>
+
+        <div class="btn-toolbar gap-2">
+            <button class="btn btn-sm theme-button" type="button"
+                    data-bs-toggle="modal" data-bs-target="#statusModal">
+                <i class="fa fa-flag me-1"></i> Set Status
+            </button>
+            <a class="btn btn-sm theme-button" href="@Url.Action("Edit","Projects", new { id = Model.Id })">
+                <i class="fa fa-pen me-1"></i> Edit Project
+            </a>
+            <button class="btn btn-sm theme-button" type="button"
+                    onclick="copyProjectCode('@Model.ProjectCode')">
+                <i class="fa fa-copy me-1"></i> Copy Project Code To Clipboard
+            </button>
+        </div>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body">
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="section-title mb-2">Project</div>
+                <div class="kv"><div class="k"><i class="fa fa-hashtag"></i>Project Code</div><div class="v">@Model.ProjectCode</div></div>
+                <div class="kv"><div class="k"><i class="fa fa-building"></i>Client</div><div class="v">@Model.ClientName</div></div>
+                <div class="kv">
+                    <div class="k"><i class="fa fa-user"></i>Contact</div>
+                    <div class="v">
+                        <div>@Model.ContactName</div>
+                        @if (!string.IsNullOrWhiteSpace(Model.ContactPhone))
+                        {
+                            <div><i class="fa fa-phone"></i> <a href="tel:@Model.ContactPhone">@Model.ContactPhone</a></div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.ContactEmail))
+                        {
+                            <div><i class="fa fa-envelope"></i> <a href="mailto:@Model.ContactEmail">@Model.ContactEmail</a></div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="section-title mb-2">Site</div>
+                @if (!string.IsNullOrWhiteSpace(Model.SiteName))
+                {
+                    <div class="kv"><div class="k"><i class="fa fa-map-marker-alt"></i>Site</div><div class="v">@Model.SiteName</div></div>
+                }
+                <div class="kv">
+                    <div class="k"><i class="fa fa-location-dot"></i>Address</div>
+                    <div class="v">@addressLine</div>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.ERPNumber))
+                {
+                    <div class="kv"><div class="k"><i class="fa fa-barcode"></i>ERP #</div><div class="v">@Model.ERPNumber</div></div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.SalesPerson))
+                {
+                    <div class="kv"><div class="k"><i class="fa fa-user-tie"></i>Sales</div><div class="v">@Model.SalesPerson</div></div>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <div class="mt-4">
+                <div class="section-title mb-2"><i class="fa fa-sticky-note me-1"></i>Notes</div>
+                <div class="p-3 rounded border bg-light">
+                    @Html.Raw(Html.Encode(Model.Notes).Replace("\n", "<br>"))
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(embedSrc))
+        {
+            <div class="mt-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="section-title m-0"><i class="fa fa-map me-1"></i>Location</div>
+                    <div class="btn-group btn-group-sm">
+                        <a class="btn btn-outline-secondary" href="@baseQuery" target="_blank" rel="noopener">
+                            <i class="fa fa-external-link-alt me-1"></i> Open in Maps
+                        </a>
+                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#@mapModalId">
+                            <i class="fa fa-expand me-1"></i> Fullscreen
+                        </button>
+                    </div>
+                </div>
+
+                <div class="map-embed map-embed--sm">
+                    <iframe src="@embedSrc" loading="lazy" referrerpolicy="no-referrer-when-downgrade" style="border:0;"></iframe>
+                </div>
+            </div>
+
+            <div class="modal fade" id="@mapModalId" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-fullscreen">
+                    <div class="modal-content d-flex flex-column">
+                        <div class="modal-header py-2">
+                            <h5 class="modal-title">Map</h5>
+                            <a class="btn btn-sm btn-outline-secondary me-2" target="_blank" href="@baseQuery">Open in Google Maps</a>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-0 flex-fill">
+                            <iframe src="@embedSrc" class="w-100 h-100 d-block" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade" allowfullscreen style="border:0;"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+

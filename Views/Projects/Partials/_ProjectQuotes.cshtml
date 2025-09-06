@@ -1,0 +1,201 @@
+﻿@model IEnumerable<MillenniumWebFixed.ViewModels.ProjectQuoteRowVm>
+@using System.Globalization
+@using System.Web
+
+@{
+    Func<string, int, string> truncate = (s, n) =>
+    {
+        s = (s ?? "").Trim();
+        if (s.Length <= n) return s;
+        return s.Substring(0, n) + "…";
+    };
+}
+
+@{
+    var projectId = (int)(ViewBag.ProjectId ?? 0);
+    var hasQuotes = Model != null && Model.Any();
+
+    // Map status → bootstrap badge classes
+    Func<string, string> statusClass = s =>
+    {
+        s = (s ?? "").Trim().ToLowerInvariant();
+        switch (s)
+        {
+            case "approved": return "bg-success";
+            case "pending":
+            case "pendingapproval": return "bg-warning text-dark";
+            case "rejected": return "bg-danger";
+            case "cancelled":
+            case "canceled": return "bg-dark";
+            case "draft":
+            default: return "bg-secondary";
+        }
+    };
+
+    // Map status → display text
+    Func<string, string> statusText = s =>
+    {
+        s = (s ?? "").Trim();
+        if (string.IsNullOrEmpty(s)) return "Draft";
+
+        switch (s.ToLowerInvariant())
+        {
+            case "pendingapproval": return "Pending Approval";
+            case "cancelled":
+            case "canceled": return "Cancelled";
+            default: return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(s.ToLower());
+        }
+    };
+
+}
+
+<style>
+    /* Compact table */
+    #quotesTable {
+        font-size: .82rem;
+        line-height: 1.2;
+    }
+
+        #quotesTable th, #quotesTable td {
+            padding: .3rem .5rem;
+            vertical-align: middle;
+        }
+        /* Theme header */
+        #quotesTable thead th {
+            background: #0c2840;
+            color: #fff;
+            border-color: rgba(255,255,255,.15);
+        }
+        /* keep action col tight */
+        #quotesTable th.action, #quotesTable td.action {
+            white-space: nowrap;
+            width: 1%;
+        }
+
+        /* Bigger status badge in the quotes table */
+        #quotesTable .status-badge {
+            font-size: .82rem; /* was ~.72rem */
+            padding: .28rem .58rem; /* a touch more padding */
+            border-radius: .35rem; /* slightly rounder */
+            font-weight: 600; /* a bit bolder */
+            line-height: 1; /* keeps it compact */
+        }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">Quotes</h5>
+    <a class="btn btn-sm theme-button" data-keep-tab
+       href="@Url.Action("Create","ProjectQuotes", new { projectId = projectId })">
+        Create A New Quote &amp; Other Options
+    </a>
+</div>
+
+@if (!hasQuotes)
+{
+    <div class="alert alert-light border small mb-2">
+        No quotes yet for this project. Click <strong>Create A New Quote</strong> to get started.
+    </div>
+}
+
+<div class="table-responsive">
+    <table id="quotesTable" class="table table-sm table-striped table-bordered align-middle w-100">
+        <thead>
+            <tr>
+                <th>Quote No</th>
+                <th>Building</th>
+                <th>Variant</th>
+                <th class="text-center">Revision</th>
+                <th>Date Created</th>
+                <th class="text-center">Status</th>
+                <th>Created By</th>
+                <th>Description</th>
+                <th class="action">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (hasQuotes)
+            {
+                foreach (var q in Model)
+                {
+                    <tr>
+                        <td>@q.QuoteNo</td>
+                        <td>@q.Building</td>
+                        <td>@q.Variant</td>
+                        <td class="text-center">@((q.Revision ?? "-").ToUpperInvariant())</td>
+                        <td data-order="@(q.Date.HasValue ? q.Date.Value.ToString("yyyyMMddHHmmss") : "0")">
+                            @(q.Date?.ToString("yyyy-MM-dd HH:mm:ss"))
+                        </td>
+                        <td class="text-center">
+                            <span class="badge @statusClass(q.Status)">
+                                @statusText(q.Status)
+                            </span>
+                        </td>
+                        <td>@(string.IsNullOrWhiteSpace(q.CreatedBy) ? "-" : q.CreatedBy)</td>
+                        <td>
+                            @{
+                                var full = (q.Description ?? "").Trim();
+                                var shortTxt = truncate(full, 20);
+                            }
+                            <span class="desc-clip"
+                                  data-bs-toggle="tooltip"
+                                  data-bs-title="@full">
+                                @shortTxt
+                            </span>
+                        </td>
+
+                        <td class="action text-end">
+                            <a class="btn btn-sm theme-button btn-open-quote"
+                               href="@Url.Action("Edit","ProjectQuotes", new { id = q.Id })" data-keep-tab>
+                                Open For Edit
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    window.addEventListener("load", function () {
+        if (!window.jQuery) { console.error("jQuery not loaded yet!"); return; }
+        // Enable Bootstrap tooltips (delegated)
+        document.addEventListener('DOMContentLoaded', function () {
+            new bootstrap.Tooltip(document.body, { selector: '[data-bs-toggle="tooltip"]' });
+        });
+
+        // If using DataTables, re-enable after draw:
+        $(document).on('draw.dt', function () {
+            new bootstrap.Tooltip(document.body, { selector: '[data-bs-toggle="tooltip"]' });
+        });
+        // If any stray colspan row made it in, remove it before init
+        $('#quotesTable tbody tr').has('td[colspan]').remove();
+
+        if ($.fn.DataTable.isDataTable('#quotesTable')) {
+            $('#quotesTable').DataTable().destroy();
+        }
+
+        $('#quotesTable').DataTable({
+            paging: true,
+            pageLength: 10,
+            lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+            order: [[0, 'asc']], // Quote No
+            responsive: true,
+            autoWidth: false,
+            columnDefs: [
+                // disable sort on Action column (index changes because Status added)
+                { targets: 7, orderable: false }
+            ],
+            language: {
+                emptyTable: 'No quotes yet. Click "Create A New Quote" to add one.',
+                zeroRecords: 'No matching quotes found.'
+            },
+            dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ms-auto"f>>rtip'
+        });
+
+        // Spinner + respect keep-tab
+        $(document).on('click', '.btn-open-quote', function () {
+            if (typeof showSpinner === 'function') showSpinner('Opening…');
+        });
+    });
+</script>

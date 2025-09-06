@@ -1,0 +1,42 @@
+﻿@model MillenniumWebFixed.ViewModels.ManualQuoteViewModel
+
+@Html.HiddenFor(m => m.LineItemsJson)
+
+<div class="bg-secondary text-white border border-secondary rounded p-3 shadow-sm mt-2">
+    <h6 class="text-uppercase small fw-bold mb-3">Available Stock / Product Items</h6>
+    <div class="table-responsive w-100 mb-0">
+        <table id="stockTable" class="table table-sm table-striped table-hover w-100 small">
+            <thead class="table-light small">
+                <tr>
+                    <th style="width: 80px;">Code</th>
+                    <th>Name</th>
+                    <th style="width: 150px;">Item Type</th>
+                    <th class="text-center" style="width: 60px;">UOM</th>
+                    <th class="text-center" style="width: 60px;">Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="bg-secondary text-white border border-secondary rounded p-3 shadow-sm mt-2">
+    <h6 class="text-uppercase small fw-bold mb-3">Selected Items</h6>
+    <div class="table-responsive small">
+        <table class="table table-sm table-bordered table-dark table-striped mb-0 small" id="quoteItemsTable">
+            <thead class="small">
+                <tr>
+                    <th style="width: 80px;">Code</th>
+                    <th>Name</th>
+                    <th class="text-center" style="width: 60px;">UOM</th>
+                    <th class="text-center" style="width: 100px;">Qty</th>
+                    <th class="text-center" style="width: 100px;">Cost Price</th>
+                    <th class="text-center" style="width: 80px;">Margin %</th>
+                    <th class="text-center" style="width: 100px;">Selling Price</th>
+                    <th class="text-center" style="width: 60px;">Remove</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,171 @@
+﻿@model MillenniumWebFixed.ViewModels.ManualQuoteViewModel
+@{
+    Layout = null;
+    var subtotal = Model.LineItems?.Sum(i => (i.SellingPrice ?? 0) * i.Qty) ?? 0m;
+    var vat = subtotal * 0.15m;
+    var grandTotal = subtotal + vat;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Quote Preview - @Model.QuoteNo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            padding: 40px;
+            font-size: 14px;
+        }
+
+        .header {
+            border-bottom: 2px solid #333;
+            margin-bottom: 30px;
+        }
+
+        .quote-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 25px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        .summary-table td {
+            padding: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header d-flex justify-content-between align-items-center">
+        <div>
+            <div class="quote-title">Manual Quote</div>
+            <div>Quote No: <strong>@(string.IsNullOrWhiteSpace(Model.QuoteNo) ? "NOT GENERATED" : Model.QuoteNo)</strong></div>
+            <div>Revision: <strong>@(string.IsNullOrWhiteSpace(Model.RevisionID) ? "NOT GENERATED" : Model.RevisionID)</strong></div>
+        </div>
+        <div class="text-end">
+            <div><strong>Date:</strong> @((Model.ImportDate ?? DateTime.Now).ToString("yyyy-MM-dd"))</div>
+            <div><strong>Customer:</strong> @(Model.PotentialCustomerName ?? "-")</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Site Details -->
+        <div class="col-md-6">
+            <div class="section-title">Site Details</div>
+            <div><strong>Site Name:</strong> @Model.SiteName</div>
+            <div><strong>Stand No:</strong> @Model.StandNumber</div>
+            <div><strong>Project:</strong> @Model.ProjectName</div>
+            <div><strong>Unit/Block No:</strong> @Model.UnitBlockNumber</div>
+            <div><strong>Type:</strong> @Model.UnitBlockType</div>
+        </div>
+
+        <!-- Design Details -->
+        <div class="col-md-6">
+            <div class="section-title">Design Details</div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div><strong>Roof Pitch:</strong> @Model.RoofPitch</div>
+                    <div><strong>Roof Overhang:</strong> @Model.RoofOverhang</div>
+                    <div><strong>Roof Gable Overhang:</strong> @Model.RoofGableOverhang</div>
+                    <div><strong>Roof Covering:</strong> @Model.RoofCovering</div>
+                </div>
+                <div class="col-md-6">
+                    <div><strong>Max Batten Centers:</strong> @Model.MaxBattenCenters</div>
+                    <div><strong>Max Truss Centers:</strong> @Model.MaxTrustCenters</div>
+                    <div><strong>Floor Area:</strong> @Model.FloorArea</div>
+                    <div><strong>Roof Area:</strong> @Model.RoofArea</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <!-- Sales Info -->
+        <div class="col-md-6">
+            <div class="section-title">Sales / Design Info</div>
+            <div><strong>Sales Rep:</strong> @(Model.SelectedSalesRepName ?? "-")</div>
+            <div><strong>Designer:</strong> @(Model.SelectedDesignerName ?? "-")</div>
+            <div><strong>Due Date:</strong> @(Model.DueDate?.ToString("yyyy-MM-dd") ?? "-")</div>
+            <div><strong>PMRJB File Ref:</strong> @Model.ImportedPMRJBFileRef</div>
+            <div><strong>Quote Notes:</strong> @Model.QuoteNotes</div>
+            <div><strong>Sales Notes:</strong> @Model.SalesNotes</div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="col-md-6">
+            <div class="section-title">Shipping Address</div>
+            <div>@Model.ShipToStreet1</div>
+            <div>@Model.ShipToStreet2</div>
+            <div>@Model.ShipToStreet3</div>
+            <div>@Model.ShipToCity, @Model.ShipToState</div>
+            <div>@Model.ShipToPostalCode, @Model.ShipToCountry</div>
+        </div>
+    </div>
+
+
+    <div class="mt-4">
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Product Code</th>
+                    <th>Description</th>
+                    <th class="text-end">Qty</th>
+                    <th class="text-center">UOM</th>
+                    <th class="text-end">Unit Price</th>
+                    <th class="text-end">Line Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.LineItems != null && Model.LineItems.Any())
+                {
+                    int i = 1;
+                    foreach (var item in Model.LineItems)
+                    {
+                        <tr>
+                            <td>@(i++)</td> <!-- This was missing -->
+                            <td>@item.ProductCode</td>
+                            <td>@item.ProductDescription</td>
+                            <td class="text-end">@item.Qty</td>
+                            <td class="text-center">@item.BaseUOM</td>
+                            <td class="text-end">@item.SellingPrice.GetValueOrDefault().ToString("C")</td>
+                            <td class="text-end">@((item.SellingPrice.GetValueOrDefault() * item.Qty).ToString("C"))</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="7" class="text-center text-muted">No items</td></tr>
+                }
+            </tbody>
+
+
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <table class="table table-borderless w-50">
+            <tr>
+                <td class="text-end"><strong>Sub Total:</strong></td>
+                <td class="text-end">@subtotal.ToString("C")</td>
+            </tr>
+            <tr style="border-bottom: double;">
+                <td class="text-end"><strong>VAT (15%):</strong></td>
+                <td class="text-end">@vat.ToString("C")</td>
+            </tr>
+            <tr>
+                <td class="text-end fs-5"><strong>Grand Total:</strong></td>
+                <td class="text-end fs-5"><strong>@grandTotal.ToString("C")</strong></td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+</html>

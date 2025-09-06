@@ -1,0 +1,77 @@
+﻿@model IEnumerable<MillenniumWebFixed.Models.QuoteImage>
+
+<style>
+    .image-card {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .image-card .card-img-top {
+            /* pick a height that fits your thumbnails */
+            height: 200px; /* e.g. 200–260px */
+            object-fit: contain; /* keep full image visible, no crop */
+            background: #fff; /* keeps it clean around transparent PNGs */
+        }
+
+        .image-card .card-body {
+            margin-top: 0px; /*.5rem;*/
+            padding-top: 0px !important;
+        }
+</style>
+
+<div class="row g-2">
+    @foreach (var img in Model ?? Enumerable.Empty<MillenniumWebFixed.Models.QuoteImage>())
+    {
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card shadow-sm image-card h-100">
+                <img src="@img.FilePath" class="card-img-top" alt="@img.FileName" />
+                <div class="card-body text-center">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger w-100 btn-delete-image"
+                            data-id="@img.Id" data-quote="@img.QuoteId">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    @if (!(Model?.Any() ?? false))
+    {
+        <div class="col-12">
+            <div class="text-muted small">No images uploaded yet.</div>
+        </div>
+    }
+</div>
+
+<script>
+async function deleteQuoteImage(id, quoteId) {
+    if (!confirm('Delete this image?')) return;
+
+    // Reuse anti-forgery token from the upload form on the page
+    const tokenInput = document.querySelector('#quoteImageUploadForm input[name="__RequestVerificationToken"]');
+    const token = tokenInput ? tokenInput.value : null;
+
+    const fd = new FormData();
+    fd.append('id', id);
+    fd.append('quoteId', quoteId);
+
+    const res = await fetch('@Url.Action("DeleteQuoteImage", "Image")', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            ...(token ? { 'RequestVerificationToken': token } : {})
+        },
+        body: fd
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+        if (typeof showToast === 'function') showToast(data.message || 'Delete failed.', 'danger');
+        return;
+    }
+    // Replace the grid with fresh HTML from the server
+    const grid = document.getElementById('quoteImagesGrid');
+    if (grid) grid.innerHTML = data.html;
+    if (typeof showToast === 'function') showToast('Image deleted.', 'success');
+}
+</script>

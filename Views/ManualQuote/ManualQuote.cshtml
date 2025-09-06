@@ -1,0 +1,1296 @@
+﻿@model MillenniumWebFixed.ViewModels.ManualQuoteViewModel
+
+@{
+    ViewBag.Title = "Manual Quote";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .modal-backdrop.show {
+        background-color: #636262 !important; /* Force pure black */
+        opacity: 0.85 !important; /* More opacity than default */
+        z-index: 1040; /* Ensure it's above content */
+    }
+
+    .quote-qty-input {
+        height: 22px !important;
+        min-height: unset !important;
+        padding: 2px 4px;
+        font-size: 0.75rem;
+        text-align: center;
+    }
+
+    #quoteItemsTable td,
+    #quoteItemsTable th {
+        vertical-align: middle !important;
+    }
+
+    .readonly-grey {
+        background-color: #f0f0f0 !important;
+        color: #6c757d; /* optional: subtle muted text */
+        cursor: not-allowed;
+    }
+</style>
+
+<div class="container mt-0">
+    <div class="bg-dark text-white p-2 rounded mb-3 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 id="quoteHeader" class="mb-0">Generate New Manual Quote</h6>
+            <div>
+                <button type="button" class="btn btn-outline-light btn-sm me-2" onclick="fillDummyData()">
+                    Fill Dummy Data
+                </button>
+                <button id="btnPreviewQuote" class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye"></i> Preview Quote
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card bg-light mb-3 border border-dark" id="quoteCostingSummary">
+        <div class="card-header text-dark fw-bold py-2">Quote Costing Summary</div>
+        <div class="card-body p-2">
+            <div class="row text-center small">
+                <div class="col border-end">
+                    <div class="text-muted">Total Cost</div>
+                    <div id="totalCost" class="fw-bold text-primary">R 0.00</div>
+                </div>
+                <div class="col border-end">
+                    <div class="text-muted">Total Selling</div>
+                    <div id="totalSelling" class="fw-bold text-success">R 0.00</div>
+                </div>
+                <div class="col border-end">
+                    <div class="text-muted">Gross Profit</div>
+                    <div id="totalProfit" class="fw-bold text-warning">R 0.00</div>
+                </div>
+                <div class="col">
+                    <div class="text-muted">Markup %</div>
+                    <div id="totalMarkup" class="fw-bold text-danger">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form id="manualQuoteForm" method="post" action="@Url.Action("SaveManualQuote", "ManualQuote")" class="no-spinner">
+        @Html.AntiForgeryToken()
+
+        <div class="accordion" id="quoteAccordion">
+            <!-- Quote Information -->
+            <div class="accordion-item mb-2">
+                <h2 class="accordion-header" id="headingQuoteInfo">
+                    <button class="accordion-button collapsed py-1 px-2 small"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#collapseQuoteInfo"
+                            aria-expanded="false"
+                            aria-controls="collapseQuoteInfo">
+                        Quote Information
+                    </button>
+                </h2>
+                <div id="collapseQuoteInfo" class="accordion-collapse collapse" data-bs-parent="#quoteAccordion">
+                    <div class="accordion-body py-2">
+                        <div class="row mb-1">
+                            <div class="col-md-4">
+                                @Html.LabelFor(m => m.QuoteNo, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.QuoteNo, new { @class = "form-control form-control-sm readonly-grey", @readonly = "readonly", placeholder = "Auto Generated" })
+                                @Html.Hidden("quoteId", Model.Id)
+                            </div>
+                            <div class="col-md-4">
+                                @Html.LabelFor(m => m.RevisionID, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.RevisionID, new { @class = "form-control form-control-sm readonly-grey", @readonly = "readonly", placeholder = "Auto Generated" })
+                            </div>
+                            <div class="col-md-4">
+                                @Html.LabelFor(m => m.ImportDate, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.ImportDate, "{0:yyyy-MM-dd}", new { @class = "form-control form-control-sm required-field", type = "date" })
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-4">
+                                @Html.LabelFor(m => m.QuantityOfUnits, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.QuantityOfUnits, new { @class = "form-control form-control-sm required-field", type = "number" })
+                            </div>
+                            <div class="col-md-4">
+                                @Html.LabelFor(m => m.DueDate, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.DueDate, "{0:yyyy-MM-dd}", new { @class = "form-control form-control-sm required-field", type = "date" })
+                            </div>
+                            <div class="col-md-4">
+                                @Html.LabelFor(m => m.DesignerId, new { @class = "form-label small" })
+                                @Html.DropDownListFor(model => model.DesignerId,
+                                    new SelectList(Model.DesignerOptions, "Value", "Text"),
+                                    "---",
+                                    new { @class = "form-select form-select-sm required-field" })
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.ImportedPMRJBFileRef, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.ImportedPMRJBFileRef, new { @class = "form-control form-control-sm required-field", @readonly = "readonly" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Details -->
+            <div class="accordion-item mb-2">
+                <h2 class="accordion-header" id="headingSiteDetails">
+                    <button class="accordion-button collapsed py-1 px-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSiteDetails">
+                        Site Details
+                    </button>
+                </h2>
+                <div id="collapseSiteDetails" class="accordion-collapse collapse" data-bs-parent="#quoteAccordion">
+                    <div class="accordion-body py-2">
+                        <div class="row mb-1">
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.SiteName, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.SiteName, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.StandNumber, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.StandNumber, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.ProjectName, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.ProjectName, new { @class = "form-control form-control-sm required-field", @readonly = "readonly" })
+                            </div>
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.UnitBlockNumber, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.UnitBlockNumber, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.UnitBlockType, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.UnitBlockType, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock Items -->
+            <div class="accordion-item mb-2">
+                <h2 class="accordion-header" id="headingStockItems">
+                    <button class="accordion-button collapsed py-1 px-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStockItems">
+                        Quote Line Items
+                    </button>
+                </h2>
+                <div id="collapseStockItems" class="accordion-collapse collapse" data-bs-parent="#quoteAccordion">
+                    <div class="accordion-body py-2">
+                        @Html.HiddenFor(m => m.LineItemsJson)
+
+                        <div class="bg-secondary text-white border border-secondary rounded p-3 shadow-sm mt-2">
+                            <h6 class="text-uppercase small fw-bold mb-3">Availble Stock / Product Items</h6>
+                            <div class="table-responsive w-100 mb-0">
+                                <table id="stockTable" class="table table-sm table-striped table-hover w-100 small">
+                                    <thead class="table-light small">
+                                        <tr>
+                                            <th style="width: 80px;">Code</th>
+                                            <th>Name</th>
+                                            <th style="width: 150px;">Item Type</th>
+                                            <th class="text-center" style="width: 60px;">UOM</th>
+                                            <th class="text-center" style="width: 60px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bg-secondary text-white border border-secondary rounded p-3 shadow-sm mt-2">
+                            <h6 class="text-uppercase small fw-bold mb-3">Selected Items</h6>
+                            <div class="table-responsive small">
+                                <table class="table table-sm table-bordered table-dark table-striped mb-0 small" id="quoteItemsTable">
+                                    <thead class="small">
+                                        <tr>
+                                            <th style="width: 80px;">Code</th>
+                                            <th>Name</th>
+                                            <th class="text-center" style="width: 60px;">UOM</th>
+                                            <th class="text-center" style="width: 100px;">Qty</th>
+                                            <th class="text-center" style="width: 100px;">Cost Price</th>
+                                            <th class="text-center" style="width: 80px;">Margin %</th>
+                                            <th class="text-center" style="width: 100px;">Selling Price</th>
+                                            <th class="text-center" style="width: 60px;">Remove</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales Information -->
+            <div class="accordion-item mb-2">
+                <h2 class="accordion-header" id="headingSalesInfo">
+                    <button class="accordion-button collapsed py-1 px-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSalesInfo">
+                        Sales Information
+                    </button>
+                </h2>
+                <div id="collapseSalesInfo" class="accordion-collapse collapse" data-bs-parent="#quoteAccordion">
+                    <div class="accordion-body py-2">
+                        <div class="row mb-1">
+                            <!-- Potential Customer -->
+                            <div class="col-md-6">
+                                <label for="PotentialCustomerName" class="form-label small">Potential Customer</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm required-field" id="PotentialCustomerName" name="PotentialCustomerName"
+                                           placeholder="Select Customer" readonly
+                                           value="@Model.PotentialCustomerName" />
+                                    <input type="hidden" id="PotentialCustomerId" name="PotentialCustomerId" value="@Model.PotentialCustomerId" />
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openCustomerSearchModal()">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Sales Representative -->
+                            <div class="col-md-6">
+                                <label asp-for="SalesRepId" class="form-label small">Sales Representative</label>
+                                @Html.DropDownListFor(model => model.SalesRepId,
+                                    new SelectList(Model.SalesRepOptions, "Value", "Text", Model.SalesRepId),
+                                    "---",
+                                    new { @class = "form-select form-select-sm required-field" })
+                            </div>
+                        </div>
+
+                        <div class="row mb-1">
+                            <!-- Contact Person -->
+                            <div class="col-md-6">
+                                <label for="SelectedContactName" class="form-label small">Contact Person</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm required-field" id="SelectedContactName" name="SelectedContactName"
+                                           placeholder="Select Contact" readonly
+                                           value="@Model.SelectedContactName" />
+                                    <input type="hidden" id="SelectedContactId" name="SelectedContactId" value="@Model.SelectedContactId" />
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openContactSearchModal()">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Enquiry Number -->
+                            <div class="col-md-6">
+                                <label for="SelectedEnquiryNumber" class="form-label small">Enquiry Number</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm required-field" id="SelectedEnquiryNumber" name="SelectedEnquiryNumber"
+                                           placeholder="Select Enquiry" readonly
+                                           value="@Model.SelectedEnquiryNumber" />
+                                    <input type="hidden" id="SelectedEnquiryId" name="SelectedEnquiryId" value="@Model.SelectedEnquiryId" />
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openEnquirySearchModal()">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Design Details -->
+            <div class="accordion-item mb-2">
+                <h2 class="accordion-header" id="headingDesignDetails">
+                    <button class="accordion-button collapsed py-1 px-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDesignDetails">
+                        Design Details
+                    </button>
+                </h2>
+                <div id="collapseDesignDetails" class="accordion-collapse collapse" data-bs-parent="#quoteAccordion">
+                    <div class="accordion-body py-2">
+                        <div class="row mb-1">
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.RoofPitch, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.RoofPitch, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.MaxBattenCenters, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.MaxBattenCenters, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.RoofOverhang, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.RoofOverhang, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.MaxTrustCenters, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.MaxTrustCenters, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.RoofGableOverhang, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.RoofGableOverhang, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.FloorArea, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.FloorArea, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.RoofCovering, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.RoofCovering, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                            <div class="col-md-6">
+                                @Html.LabelFor(m => m.RoofArea, new { @class = "form-label small" })
+                                @Html.TextBoxFor(m => m.RoofArea, new { @class = "form-control form-control-sm required-field" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quote Notes -->
+            <div class="accordion-item mb-2">
+                <h2 class="accordion-header" id="headingQuoteNotes">
+                    <button class="accordion-button collapsed py-1 px-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseQuoteNotes">
+                        Quote Notes
+                    </button>
+                </h2>
+                <div id="collapseQuoteNotes" class="accordion-collapse collapse" data-bs-parent="#quoteAccordion">
+                    <div class="accordion-body py-2">
+                        <div class="mb-2">
+                            @*@Html.LabelFor(m => m.QuoteNotes, new { @class = "form-label small" })*@
+                            @Html.TextAreaFor(m => m.QuoteNotes, new { @class = "form-control form-control-sm required-field", rows = 4 })
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales Notes -->
+            <div class="accordion-item mb-2">
+                <h2 class="accordion-header" id="headingSalesNotes">
+                    <button class="accordion-button collapsed py-1 px-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSalesNotes">
+                        Sales Notes
+                    </button>
+                </h2>
+                <div id="collapseSalesNotes" class="accordion-collapse collapse" data-bs-parent="#quoteAccordion">
+                    <div class="accordion-body py-2">
+                        <div class="mb-2">
+                            @*@Html.LabelFor(model => model.SalesNotes, new { @class = "form-label small" })*@
+                            @Html.TextAreaFor(model => model.SalesNotes, new { @class = "form-control form-control-sm required-field", rows = 4 })
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Addresses -->
+            <div class="accordion-item mb-2">
+                <h2 class="accordion-header" id="headingAddresses">
+                    <button class="accordion-button collapsed py-1 px-2 small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAddresses">
+                        Addresses
+                    </button>
+                </h2>
+                <div id="collapseAddresses" class="accordion-collapse collapse" data-bs-parent="#quoteAccordion">
+                    <div class="accordion-body py-2">
+                        <div class="mb-2">
+                            @Html.LabelFor(m => m.ShipToStreet1, new { @class = "form-label small" })
+                            @Html.TextBoxFor(m => m.ShipToStreet1, new { @class = "form-control form-control-sm required-field" })
+                        </div>
+                        <div class="mb-2">
+                            @Html.LabelFor(m => m.ShipToStreet2, new { @class = "form-label small" })
+                            @Html.TextBoxFor(m => m.ShipToStreet2, new { @class = "form-control form-control-sm required-field" })
+                        </div>
+                        <div class="mb-2">
+                            @Html.LabelFor(m => m.ShipToStreet3, new { @class = "form-label small" }) <!-- Add property if needed -->
+                            @Html.TextBox("ShipToStreet3", null, new { @class = "form-control form-control-sm required-field" }) <!-- Optional fallback -->
+                        </div>
+                        <div class="mb-2">
+                            @Html.LabelFor(m => m.ShipToCity, new { @class = "form-label small" })
+                            @Html.TextBoxFor(m => m.ShipToCity, new { @class = "form-control form-control-sm required-field" })
+                        </div>
+                        <div class="mb-2">
+                            @Html.LabelFor(m => m.ShipToState, new { @class = "form-label small" })
+                            @Html.TextBoxFor(m => m.ShipToState, new { @class = "form-control form-control-sm required-field" })
+                        </div>
+                        <div class="mb-2">
+                            @Html.Label("ShipToPostalCode", "Ship To ZIP/Postal Code", new { @class = "form-label small" })
+                            @Html.TextBoxFor(m => m.ShipToPostalCode, new { @class = "form-control form-control-sm required-field" })
+                        </div>
+                        <div class="mb-2">
+                            @Html.Label("ShipToCountry", "Ship To Country/Region", new { @class = "form-label small" })
+                            @Html.TextBox("ShipToCountry", null, new { @class = "form-control form-control-sm required-field" }) <!-- Optional field -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-2">
+                <button type="submit" class="btn btn-sm theme-button">Save Quote</button>
+            </div>
+
+        </div>
+    </form>
+    @Html.Partial("_CustomerSearchModal", Model.Customers)
+    @Html.Partial("_ContactSearchModal", Model.Contacts)
+    @Html.Partial("_EnquirySearchModal", Model.Enquiries)
+
+    <!-- Quantity Modal -->
+    <div class="modal fade" id="quantityModal" tabindex="-1" aria-labelledby="quantityModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header py-2 bg-dark text-white">
+                    <h6 class="modal-title fw-semibold small" id="quantityModalLabel">Add Item to Quote</h6>
+                    <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Wrap body+footer in a form -->
+                <form id="addItemForm" novalidate>
+                    <div class="modal-body small">
+                        <div id="quantityItemName" class="mb-3" style="font-weight:bold;">Item name will go here</div>
+                        <div class="mb-3 text-muted">
+                            <div><strong>Code:</strong> <span id="quantityItemCode">---</span></div>
+                            <div><strong>Type:</strong> <span id="quantityItemType">---</span></div>
+                            <div><strong>UOM:</strong> <span id="quantityItemUOM">---</span></div>
+                        </div>
+
+                        <div id="zeroCostWarning" class="alert alert-danger fw-bold fs-8 p-3 mb-3 shadow border border-danger d-none">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                            This item has <u>no cost price</u> defined. Please confirm before quoting.
+                        </div>
+
+                        <input type="number"
+                               id="quantityInput"
+                               name="quantity"
+                               class="form-control form-control-sm"
+                               placeholder="Enter quantity"
+                               min="1"
+                               required />
+                        <div class="invalid-feedback">Please enter a quantity of at least 1.</div>
+                    </div>
+
+                    <div class="modal-footer py-2 border-top">
+                        <button type="button" class="btn btn-sm btn-secondary px-3" data-bs-dismiss="modal">Cancel</button>
+                        <!-- submit triggers confirmQuantity via JS below -->
+                        <button type="submit" class="btn btn-sm theme-button px-3">Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Validation Modal -->
+    <div class="modal fade" id="validationModal" tabindex="-1" aria-labelledby="validationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header bg-danger text-white py-2">
+                    <h6 class="modal-title" id="validationModalLabel">Required Fields Missing</h6>
+                    <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body small">
+                    <ul id="missingFieldsList" class="mb-0"></ul>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview PDF -->
+    <div class="modal fade" id="quotePreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <div class="container-fluid d-flex justify-content-between align-items-center p-0">
+                        <h5 class="modal-title mb-0">Quote Preview</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-success btn-sm" onclick="generateQuote()">Generate Quote</button>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe id="quotePreviewIframe" src="" style="width:100%; height:90vh;" frameborder="0"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Notification Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header bg-dark text-white" style="padding-top: .5rem; padding-bottom: .5rem;">
+                    <h6 class="modal-title" id="successModalLabel">Success</h6>
+                    <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body small" id="successModalBody">
+                    <!-- Message inserted via JS -->
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            const isEditing = @((Model.Id > 0).ToString().ToLower());
+            const quoteNo = '@(Model.QuoteNo ?? "")';
+
+            @if (TempData["Message"] != null)
+            {
+                var type = TempData["ToastType"] ?? "success";
+                <text>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        showToast("@TempData["Message"]", "@type");
+                    });
+                </text>
+            }
+
+            function showSuccessModal(message) {
+                $('#successModalBody').html(message);
+                $('#successModal').modal('show');
+            }
+
+            function generateQuote() {
+                let quoteId = $('#quoteId').val();
+                showSpinner("Validating Data..."); // Show immediately
+
+                if (!quoteId) {
+                    $.ajax({
+                        url: '/ManualQuote/SaveManualQuote',
+                        type: 'POST',
+                        data: $('#manualQuoteForm').serialize(),
+                        success: function (res) {
+                            if (res.success) {
+                                quoteId = res.quoteId;
+                                $('#quoteId').val(quoteId);
+                                callGeneratePdf(quoteId);
+                            } else {
+                                hideSpinner();
+                                showSuccessModal("Save failed: " + res.message);
+                            }
+                        },
+                        error: function (xhr) {
+                            hideSpinner();
+                            showSuccessModal("Save request failed. Status: " + xhr.status);
+                        }
+                    });
+                } else {
+                    callGeneratePdf(quoteId);
+                }
+            }
+
+            function callGeneratePdf() {
+                buildLineItemsJson(); // Ensure LineItemsJson is fresh
+                const formData = $('#manualQuoteForm').serialize();
+
+                showSpinner("Generating PDF...");
+
+                $.ajax({
+                    url: '/ManualQuote/GeneratePdfQuote',
+                    method: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            showSuccessModal("Quote generated and saved successfully.");
+                            setTimeout(() => {
+                                window.open(response.path, '_blank'); // Open PDF
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showSuccessModal("Error: " + (response.message || "An unknown error occurred."));
+                        }
+                    },
+                    error: function (xhr) {
+                        const errorMessage = xhr.statusText || "PDF generation failed.";
+                        showSuccessModal("PDF generation failed. Status: " + xhr.status + " - " + errorMessage);
+                    },
+                    complete: function () {
+                        hideSpinner();
+                    }
+                });
+            }
+
+            $('#btnPreviewQuote').off('click').on('click', function (e) {
+                e.preventDefault();
+
+                const $button = $(this);
+                if ($button.prop('disabled')) return;
+
+                $button.prop('disabled', true);
+                showSpinner("Building Preview...");
+
+                try {
+                    const items = buildLineItemsJson(); // now returns items
+                    if (!validateLineItems(items)) {
+                        hideSpinner();
+                        $button.prop('disabled', false);
+                        return;
+                    }
+
+                    const formData = $('#manualQuoteForm').serialize();
+
+                    $.ajax({
+                        url: '/ManualQuote/RenderPreview',
+                        method: 'POST',
+                        data: formData,
+                        success: function (html) {
+                            $('#quotePreviewIframe').attr('srcdoc', html);
+                            $('#quotePreviewModal').modal('show');
+                        },
+                        error: function () {
+                            showSuccessModal("Preview failed.");
+                        },
+                        complete: function () {
+                            hideSpinner();
+                            $button.prop('disabled', false);
+                        }
+                    });
+                } catch (ex) {
+                    hideSpinner();
+                    $button.prop('disabled', false);
+                    showSuccessModal("An error occurred while preparing the preview.");
+                }
+            });
+
+            function buildLineItemsJson() {
+                const items = [];
+
+                $('#quoteItemsTable tbody tr').each(function () {
+                    const row = $(this);
+                    const productId = row.find('input[name*="[ProductId]"]').val();
+                    const productCode = row.find('input[name*="[ProductCode]"]').val();
+                    const qty = parseInt(row.find('input[name*="[Qty]"]').val()) || 0;
+                    const costPrice = parseFloat(row.find('input[name*="[CostPrice]"]').val()) || 0;
+                    const marginPercent = parseFloat(row.find('input[name*="[MarginPercent]"]').val()) || 0;
+                    const sellingPrice = parseFloat(row.find('input[name*="[SellingPrice]"]').val()) || 0;
+
+                    items.push({
+                        ProductId: productId,
+                        ProductCode: productCode,
+                        Qty: qty,
+                        CostPrice: costPrice,
+                        MarginPercent: marginPercent,
+                        SellingPrice: sellingPrice
+                    });
+                });
+
+                $('#LineItemsJson').val(JSON.stringify(items));
+                return items;
+            }
+
+            function validateLineItems(items) {
+                const $rows = $('#quoteItemsTable tbody tr');
+                let firstInvalidRowFound = false;
+
+                const zeroPriceItems = [];
+
+                $rows.each(function (index) {
+                    const row = $(this);
+                    const costInput = row.find('input[name*="[CostPrice]"]');
+                    const sellInput = row.find('input[name*="[SellingPrice]"]');
+                    const code = row.find('input[name*="[ProductCode]"]').val();
+                    const desc = row.find('td:nth-child(2)').text().trim(); // assuming Name is 2nd td
+
+                    const cost = parseFloat(costInput.val()) || 0;
+                    const sell = parseFloat(sellInput.val()) || 0;
+
+                    // Clear previous highlight
+                    row.removeClass('table-danger');
+
+                    if (cost === 0 || sell === 0) {
+                        zeroPriceItems.push({ code, desc });
+
+                        // Highlight and scroll to first invalid
+                        if (!firstInvalidRowFound) {
+                            firstInvalidRowFound = true;
+                            row.addClass('table-danger'); // Bootstrap red
+                            $('html, body').animate({
+                                scrollTop: row.offset().top - 100
+                            }, 400);
+                            (cost === 0 ? costInput : sellInput).focus();
+                        } else {
+                            row.addClass('table-danger');
+                        }
+                    }
+                });
+
+                if (zeroPriceItems.length > 0) {
+                    const listItems = zeroPriceItems.map(i =>
+                        `<li><span class="fw-bold">${i.code} : ${i.desc}</span></li>`
+                    ).join('');
+
+                    const msg = `
+                            <p><strong>Warning:</strong> The following items have missing cost/selling prices:</p>
+                            <ul>${listItems}</ul>
+                            <p>Please ensure all prices are filled in before previewing.</p>
+                        `;
+
+                    $('#successModalLabel').text('Missing Prices');
+                    $('#successModalBody').html(msg);
+                    $('#successModal').modal('show');
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Focus the qty field when the modal opens
+            $('#quantityModal')
+                .off('shown.bs.modal.setFocus')
+                .on('shown.bs.modal.setFocus', function () {
+                    $('#quantityInput').focus().select();
+                });
+
+            // Submit handler (Enter or clicking Add)
+            $(document)
+                .off('submit.addItem')
+                .on('submit.addItem', '#addItemForm', function (e) {
+                    e.preventDefault();
+
+                    const qty = document.getElementById('quantityInput');
+                    if (!qty.checkValidity() || Number(qty.value) < 1) {
+                        qty.reportValidity();              // show browser validation
+                        $(qty).addClass('is-invalid');
+                        return;
+                    }
+                    $(qty).removeClass('is-invalid');
+
+                    confirmQuantity();                    // your existing function
+                });
+
+
+
+            // Quantity Modal
+            let pendingItemCode = "";
+            let pendingItemName = "";
+            let pendingProductId = "";
+
+            function addItemToQuote(productId, productCode, name, costPrice, sellingPrice, itemType, baseUOM) {
+                pendingProductId = productId;
+                pendingItemCode = productCode;
+                pendingItemName = name;
+                pendingCost = parseFloat(costPrice) || 0;
+                pendingSelling = parseFloat(sellingPrice) || 0;
+                pendingBaseUOM = baseUOM;
+
+                $('#quantityInput').val('');
+                $('#quantityItemName').text(name);
+                $('#quantityItemCode').text(productCode);
+                $('#quantityItemType').text(itemType);
+                $('#quantityItemUOM').text(baseUOM);
+
+                // Show/hide warning if cost is 0
+                if (pendingCost <= 0) {
+                    $('#zeroCostWarning').removeClass('d-none');
+                } else {
+                    $('#zeroCostWarning').addClass('d-none');
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('quantityModal'));
+                modal.show();
+            }
+
+            function confirmQuantity() {
+                const qty = $('#quantityInput').val();
+                if (!qty || isNaN(qty) || qty <= 0) {
+                    showToast("Please enter a valid quantity.", "danger");
+                    return;
+                }
+
+                const row = `
+                        <tr>
+                            <td>
+                                <input type="hidden" name="QuoteItems[][ProductId]" value="${pendingProductId}" />
+                                <input type="hidden" name="QuoteItems[][ProductCode]" value="${pendingItemCode}" />
+                                ${pendingItemCode}
+                            </td>
+                            <td>${pendingItemName}</td>
+                            <td class="text-center">${pendingBaseUOM}</td>
+                            <td>
+                                <input type="number" name="QuoteItems[][Qty]"
+                                       class="form-control form-control-sm text-end qty-input"
+                                       value="${qty}" required />
+                            </td>
+                            <td>
+                                <input type="number" name="QuoteItems[][CostPrice]"
+                                       class="form-control form-control-sm text-end cost-input"
+                                       step="any" value="${pendingCost?.toFixed(2) || ''}" />
+                            </td>
+                            <td>
+                                <input type="number" name="QuoteItems[][MarginPercent]"
+                                       class="form-control form-control-sm text-end margin-input"
+                                       step="any" />
+                            </td>
+                            <td>
+                                <input type="number" name="QuoteItems[][SellingPrice]"
+                                       class="form-control form-control-sm text-end selling-input"
+                                       step="any" value="${pendingSelling?.toFixed(2) || ''}" readonly tabindex="-1" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-danger text-center w-100 d-flex justify-content-center align-items-center remove-quote-item"
+                                    style="font-size: 0.8rem;padding: 4px 10px;">x</button>
+                            </td>
+                        </tr>`;
+
+
+                $('#quoteItemsTable tbody').append(row);
+                updateQuoteTotals();
+
+                const modalEl = document.getElementById('quantityModal');
+                bootstrap.Modal.getInstance(modalEl).hide();
+            }
+
+            // ==============================
+            // Quote Table
+            //===============================
+            $('#stockTable').DataTable({
+                processing: true,
+                serverSide: true,
+                autoWidth: false, // <- important!
+                pageLength: 5,
+                lengthMenu: [5, 10, 25, 50],
+                ajax: {
+                    url: '/ManualQuote/GetFilteredStockItems',
+                    type: 'POST'
+                },
+                columns: [
+                    {
+                        data: 'productCode',
+                        width: '80px',
+                        className: 'small text-muted' // small + muted gray
+                    },
+                    {
+                        data: 'name',
+                        className: 'small' // allow max space
+                    },
+                    {
+                        data: 'itemTypeName',
+                        width: '150px',
+                        className: 'small'
+                    },
+                    {
+                        data: 'baseUOM',
+                        width: '60px',
+                        className: 'small text-center'
+                    },
+                    {
+                        data: null,
+                        render: function (data, type, row) {
+                            const escapedName = row.name.replace(/'/g, "\\'");
+                            const itemType = row.itemTypeName?.replace(/'/g, "\\'") || '';
+                            const baseUOM = row.baseUOM?.replace(/'/g, "\\'") || '';
+                            const cost = row.costPrice ?? 0;
+                            const selling = row.sellingPrice ?? 0;
+
+                            return `
+        <button type="button"
+            class="btn btn-sm theme-button w-100 d-flex justify-content-center align-items-center"
+            onclick="addItemToQuote('${row.productId}', '${row.productCode}', '${escapedName}', ${cost}, ${selling}, '${itemType}', '${baseUOM}')">
+            +
+        </button>`;
+                        },
+                        orderable: false,
+                        searchable: false,
+                        width: '60px',
+                        className: 'text-center'
+                    }
+
+                ]
+
+            });
+
+            function removeRow(btn) {
+                $(btn).closest('tr').remove();
+            }
+
+            // ==============================
+            // Modal Management
+            // ==============================
+
+            // Customer Modal
+            function openCustomerSearchModal() {
+                $('#customerSearchModal').modal('show');
+            }
+
+            function selectCustomer(id, name) {
+                $('#PotentialCustomerId').val(id);
+                $('#PotentialCustomerName').val(name);
+                $('#customerSearchModal').modal('hide');
+            }
+
+            // Contact Modal
+            function openContactSearchModal() {
+                $('#contactSearchModal').modal('show');
+            }
+
+            function selectContact(contactId, contactName) {
+                $('#SelectedContactId').val(contactId);
+                $('#SelectedContactName').val(contactName);
+                $('#contactSearchModal').modal('hide');
+            }
+
+            // Enquiry Modal
+            function openEnquirySearchModal() {
+                $('#enquirySearchModal').modal('show');
+            }
+
+            function selectEnquiry(enquiryId, enquiryNumber) {
+                $('#SelectedEnquiryId').val(enquiryId);
+                $('#SelectedEnquiryNumber').val(enquiryNumber);
+                $('#enquirySearchModal').modal('hide');
+            }
+
+            function openAddEnquiryModal() {
+                const modal = new bootstrap.Modal(document.getElementById('addEnquiryModal'), {
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                modal.show();
+
+                // Auto-focus the first input
+                setTimeout(() => {
+                    document.getElementById('newEnquiryNumber').focus();
+                }, 200);
+            }
+
+            // ==============================
+            // DataTables Initialization
+            // ==============================
+
+            $(document).ready(function () {
+                // Set Header
+                if (isEditing) {
+                    $('#quoteHeader').text(`View / Edit Existing Quote Number ${quoteNo}`);
+                } else {
+                    $('#quoteHeader').text('Generate New Manual Quote');
+                }
+
+                // Customer Table
+                $('#customerTable').DataTable({
+                    responsive: true,
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50, 100],
+                    ordering: true,
+                    searching: true,
+                    paging: true,
+                    language: {
+                        search: "Filter Customers:"
+                    },
+                    columnDefs: [
+                        { targets: [0], visible: false }, // hide ID
+                        { targets: [2], width: "100px", className: "text-center" } // Action column
+                    ]
+                });
+
+                // Contact Table
+                $('#contactTable').DataTable({
+                    responsive: true,
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50, 100],
+                    ordering: true,
+                    searching: true,
+                    paging: true,
+                    language: {
+                        search: "Filter Contacts:"
+                    },
+                    columnDefs: [
+                        { targets: [0], visible: false }, // hide ContactId
+                        { targets: [5], width: "100px", className: "text-center" } // Action column
+                    ]
+                });
+
+                // Enquiry Table
+                $('#enquiryTable').DataTable({
+                    responsive: true,
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50, 100],
+                    ordering: true,
+                    searching: true,
+                    paging: true,
+                    language: {
+                        search: "Filter Enquiries:"
+                    },
+                    columnDefs: [
+                        { targets: [0], visible: false }, // hide ID
+                        { targets: [3], width: "100px", className: "text-center" } // Action column
+                    ]
+                });
+
+                $('#addEnquiryForm').on('submit', function (e) {
+                    e.preventDefault();
+
+                    const enquiryData = {
+                        EnquiryNumber: $('#newEnquiryNumber').val(),
+                        CustomerId: $('#newCustomerId').val(),
+                        Notes: $('#newNotes').val()
+                    };
+
+                    $.post('/ManualQuote/AddEnquiry', enquiryData)
+                        .done(function (newItem) {
+                            $('#addEnquiryModal').modal('hide');
+                            $('#enquirySearchModal').modal('hide');
+
+                            // Only set enquiry fields – do NOT trigger full quote form submission
+                            $('#SelectedEnquiryId').val(newItem.EnquiryId);
+                            $('#SelectedEnquiryNumber').val(newItem.EnquiryNumber);
+
+                            showToast("New enquiry added and selected.", "success");
+                        })
+                        .fail(function () {
+                            showToast("Failed to save new enquiry.", "danger");
+                        })
+                        .always(function () {
+                            hideSpinner(); // Always stop the spinner
+                        });
+                });
+
+            });
+
+            // ==============================
+            // Validate
+            // ==============================
+            $('form').on('submit', function (e) {
+                const missingFieldsByGroup = {};
+
+                // Mapping input IDs to Accordion Titles
+                const fieldToAccordion = {
+                    "ImportDate": "Quote Information",
+                    "QuantityOfUnits": "Quote Information",
+                    "DueDate": "Quote Information",
+                    "DesignerId": "Quote Information",
+                    "ImportedPMRJBFileRef": "Quote Information",
+
+                    "SiteName": "Site Details",
+                    "StandNumber": "Site Details",
+                    "ProjectName": "Site Details",
+                    "UnitBlockNumber": "Site Details",
+                    "UnitBlockType": "Site Details",
+
+                    "PotentialCustomer": "Sales Information",
+                    "SalesRepId": "Sales Information",
+                    "ContactPerson": "Sales Information",
+                    "EnquiryNumber": "Sales Information",
+
+                    "RoofPitch": "Design Details",
+                    "MaxBattenCenters": "Design Details",
+                    "RoofOverhang": "Design Details",
+                    "MaxTrussCenters": "Design Details",
+                    "RoofGableOverhang": "Design Details",
+                    "FloorArea": "Design Details",
+                    "RoofCovering": "Design Details",
+                    "RoofArea": "Design Details",
+
+                    "QuoteNotes": "Quote Notes",
+                    "SalesNotes": "Sales Notes",
+
+                    "ShipToStreet1": "Addresses",
+                    "ShipToStreet2": "Addresses",
+                    "ShipToStreet3": "Addresses",
+                    "ShipToCity": "Addresses",
+                    "ShipToState": "Addresses",
+                    "ShipToZip": "Addresses",
+                    "ShipToCountry": "Addresses"
+                };
+
+                $('.required-field').each(function () {
+                    const val = $(this).val();
+                    const label = $("label[for='" + this.id + "']").text().trim();
+                    const group = fieldToAccordion[this.id] || "Other";
+
+                    if (!val || val.trim() === "") {
+                        if (!missingFieldsByGroup[group]) {
+                            missingFieldsByGroup[group] = [];
+                        }
+                        missingFieldsByGroup[group].push(label || this.name);
+                    }
+                });
+
+                if (Object.keys(missingFieldsByGroup).length > 0) {
+                    e.preventDefault();
+
+                    const list = $('#missingFieldsList');
+                    list.empty();
+
+                    for (const group in missingFieldsByGroup) {
+                        list.append(`<li class="fw-bold">${group}<ul class="mb-0">`);
+
+                        missingFieldsByGroup[group].forEach(f => {
+                            list.append(`<li class="ms-3 text-muted">${f}</li>`);
+                        });
+
+                        list.append(`</ul></li>`);
+
+                    }
+
+                    const modal = new bootstrap.Modal(document.getElementById('validationModal'));
+                    modal.show();
+                }
+                else {
+                    const lineItems = [];
+
+                    $('#quoteItemsTable tbody tr').each(function () {
+                        const productId = $(this).find('input[name*="ProductId"]').val();
+                        const qty = $(this).find('input[name*="Qty"]').val();
+                        const costPrice = $(this).find('input[name*="CostPrice"]').val();
+                        const margin = $(this).find('input[name*="MarginPercent"]').val();
+                        const selling = $(this).find('input[name*="SellingPrice"]').val();
+
+                        if (productId && qty) {
+                            lineItems.push({
+                                ProductId: parseInt(productId) || 0,
+                                Qty: parseFloat(qty),
+                                CostPrice: parseFloat(costPrice),
+                                MarginPercent: parseFloat(margin),
+                                SellingPrice: parseFloat(selling)
+                            });
+                        }
+                    });
+
+                    $('#LineItemsJson').val(JSON.stringify(lineItems));
+                    showSpinner("Processing...");
+                }
+            });
+
+            // ==============================
+            // Dummy Test Data
+            // ==============================
+            function fillDummyData() {
+                $('#QuantityOfUnits').val(42);
+                $('#DueDate').val(new Date().toISOString().split('T')[0]);
+                $('#DesignerId').val($('#DesignerId option:eq(1)').val());
+                $('#ImportedPMRJBFileRef').val("TestFile.json");
+                $('#SiteName').val("Test Site Area");
+                $('#StandNumber').val("12345");
+                $('#ProjectName').val("Test Project");
+                $('#UnitBlockNumber').val("B12");
+                $('#UnitBlockType').val("Duplex");
+
+                $('#PotentialCustomerId').val("1");
+                $('#PotentialCustomerName').val("Acme Construction");
+
+                $('#SalesRepId').val($('#SalesRepId option:eq(1)').val());
+                $('#SelectedContactId').val("10");
+                $('#SelectedContactName').val("John Tester");
+                $('#SelectedEnquiryId').val("1001");
+                $('#SelectedEnquiryNumber').val("ENQ-2025-001");
+
+                $('#RoofPitch').val("25");
+                $('#MaxBattenCenters').val("600");
+                $('#RoofOverhang').val("350");
+                $('#MaxTrustCenters').val("900");
+                $('#RoofGableOverhang').val("300");
+                $('#FloorArea').val("240");
+                $('#RoofCovering').val("Metal");
+                $('#RoofArea').val("200");
+
+                $('#ShipToStreet1').val("123 Main Rd");
+                $('#ShipToStreet2').val("Unit 4");
+                $('#ShipToStreet3').val("Industrial Park");
+                $('#ShipToCity').val("George");
+                $('#ShipToState').val("Western Cape");
+                $('#ShipToPostalCode').val("6530");
+                $('#ShipToCountry').val("South Africa");
+
+                $('#QuoteNotes').val("This is a sample quote for testing.");
+                $('#SalesNotes').val("Internal use only. Not for distribution.");
+
+                const stockAccordion = document.getElementById('collapseStockItems');
+                const bsCollapse = new bootstrap.Collapse(stockAccordion, { toggle: true });
+                //showToast("Dummy / Test Data Loaded.<br /><br />Just Add Stock Line Items!", "success");
+            }
+
+            // ==============================
+            // Load Existing Line Items
+            // ==============================
+            $(document).ready(function () {
+                if ($('#LineItemsJson').length && $('#LineItemsJson').val()) {
+                    try {
+                        const items = JSON.parse($('#LineItemsJson').val());
+                        items.forEach(item => {
+                            const row = `
+                    <tr>
+                        <td>
+                            <input type="hidden" name="QuoteItems[][ProductId]" value="${item.ProductId}" />
+                            <input type="hidden" name="QuoteItems[][ProductCode]" value="${item.ProductCode}" />
+                            ${item.ProductCode}
+                        </td>
+                        <td>${item.ProductDescription || ''}</td>
+                        <td class="text-center">${item.BaseUOM || ''}</td>
+                        <td><input type="number" name="QuoteItems[][Qty]" class="form-control form-control-sm text-end qty-input" value="${item.Qty}" /></td>
+                        <td><input type="number" name="QuoteItems[][CostPrice]" class="form-control form-control-sm text-end cost-input" value="${item.CostPrice}" /></td>
+                        <td><input type="number" name="QuoteItems[][MarginPercent]" class="form-control form-control-sm text-end margin-input" value="${item.MarginPercent}" /></td>
+                        <td><input type="number" name="QuoteItems[][SellingPrice]" class="form-control form-control-sm text-end selling-input" value="${item.SellingPrice}" readonly /></td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger text-center w-100 d-flex justify-content-center align-items-center remove-quote-item"
+                                    style="font-size: 0.8rem;padding: 4px 10px;">x</button>
+                        </td>
+                    </tr>`;
+                            $('#quoteItemsTable tbody').append(row);
+                        });
+
+                        //// Recalculate all row selling prices AFTER rendering
+                        //$('#quoteItemsTable tbody tr').each(function () {
+                        //    calculateRowSellingPrice($(this));
+                        //});
+
+                        updateQuoteTotals();
+                    } catch (e) {
+                        console.error("Error parsing LineItemsJson:", e);
+                    }
+                }
+            });
+
+
+            // ==============================
+            // Calculate Quote
+            // ==============================
+            function calculateRowSellingPrice(row) {
+                const cost = parseFloat(row.find('.cost-input').val()) || 0;
+                const margin = parseFloat(row.find('.margin-input').val()) || 0;
+                const selling = cost * (1 + (margin / 100));
+                row.find('.selling-input').val(selling.toFixed(2));
+            }
+
+            function updateQuoteTotals() {
+                let totalCost = 0;
+                let totalSelling = 0;
+
+                $('#quoteItemsTable tbody tr').each(function () {
+                    const row = $(this);
+                    const qty = parseFloat(row.find('.qty-input').val()) || 0;
+                    const cost = parseFloat(row.find('.cost-input').val()) || 0;
+                    const selling = parseFloat(row.find('.selling-input').val()) || 0;
+
+                    totalCost += qty * cost;
+                    totalSelling += qty * selling;
+                });
+
+                const profit = totalSelling - totalCost;
+                const markup = totalCost > 0 ? (profit / totalCost) * 100 : 0;
+
+                $('#totalCost').text('R ' + totalCost.toLocaleString('en-ZA', { minimumFractionDigits: 2 }));
+                $('#totalSelling').text('R ' + totalSelling.toLocaleString('en-ZA', { minimumFractionDigits: 2 }));
+                $('#totalProfit').text('R ' + profit.toLocaleString('en-ZA', { minimumFractionDigits: 2 }));
+                $('#totalMarkup').text(markup.toFixed(1) + '%');
+            }
+
+            // Hook up recalculation on input
+            $(document).on('input', '.qty-input, .cost-input, .margin-input', function () {
+                const row = $(this).closest('tr');
+                calculateRowSellingPrice(row);
+                updateQuoteTotals();
+            });
+
+            // Handle row removal
+            $(document).on('click', '.remove-quote-item', function () {
+                $(this).closest('tr').remove();
+                updateQuoteTotals();
+            });
+
+            // Trigger initial calc (optional)
+            $(document).ready(updateQuoteTotals);
+
+        </script>
+    }
+
+</div>

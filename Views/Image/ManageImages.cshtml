@@ -1,0 +1,168 @@
+﻿@model MillenniumWebFixed.ViewModels.ManualQuoteViewModel
+@using MillenniumWebFixed.Models
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Manage Quote Images";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Manage Images for Quote @Model.QuoteNo</h5>
+    <a href="@Url.Action("ManualQuote_Tabs", "ManualQuote", new { id = Model.Id })" class="btn btn-sm theme-button">Back to Quote</a>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <form id="quoteImageUploadForm" enctype="multipart/form-data" onsubmit="return false;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="QuoteId" name="QuoteId" value="@Model.Id" />
+            <div class="mb-2">
+                <input type="file" id="quoteImageFiles" name="files" class="form-control" multiple />
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                <button type="button" id="btnUploadQuoteImages" class="btn theme-button btn-sm">Upload</button>
+                <span id="quoteImgSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Image Modal -->
+<div class="modal fade" id="deleteImageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-danger text-white py-2">
+                <h6 class="modal-title">Delete Image</h6>
+                <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body small">
+                Are you sure you want to delete this image?
+                <input type="hidden" id="delImageId" />
+                <input type="hidden" id="delQuoteId" value="@Model.Id" />
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="btnConfirmDelete" class="btn btn-sm btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="quoteImagesGrid">
+    @Html.Partial("_QuoteImagesGrid", Model.QuoteImages ?? new List<QuoteImage>())
+</div>
+
+@section Scripts {
+    <script>
+    (function () {
+        const btn = document.getElementById('btnUploadQuoteImages');
+        if (!btn) return;
+
+    btn.addEventListener('click', async function () {
+        const form = document.getElementById('quoteImageUploadForm');
+        const filesInput = document.getElementById('quoteImageFiles');
+        const spinner = document.getElementById('quoteImgSpinner');
+
+        if (!filesInput.files || filesInput.files.length === 0) {
+            if (typeof showToast === 'function') showToast('Please select at least one image.', 'warning');
+            return;
+        }
+
+        const fd = new FormData();
+        fd.append('quoteId', document.getElementById('QuoteId').value);
+        for (const f of filesInput.files) fd.append('files', f);
+
+        // 👇 add the anti-forgery token as a form field
+        const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+        fd.append('__RequestVerificationToken', token);
+
+        spinner.classList.remove('d-none');
+
+        try {
+            const res = await fetch('@Url.Action("UploadQuoteImages", "Image")', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }, // no token header
+                body: fd
+            });
+
+            // If anti-forgery still fails, you'll get a 500 with HTML.
+            // Optional: guard for non-JSON responses
+            const text = await res.text();
+            let data;
+            try { data = JSON.parse(text); } catch { throw new Error('Server error'); }
+
+            if (!data.success) {
+                if (typeof showToast === 'function') showToast(data.message || 'Upload failed.', 'danger');
+                return;
+            }
+            document.getElementById('quoteImagesGrid').innerHTML = data.html;
+            filesInput.value = '';
+            if (typeof showToast === 'function') showToast('Images uploaded.', 'success');
+        } catch (e) {
+            console.error(e);
+            if (typeof showToast === 'function') showToast('Unexpected error uploading images.', 'danger');
+        } finally {
+            spinner.classList.add('d-none');
+        }
+    });
+    })();
+
+// Open modal when clicking any delete button
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.btn-delete-image');
+    if (!btn) return;
+
+    document.getElementById('delImageId').value = btn.getAttribute('data-id');
+    document.getElementById('delQuoteId').value = btn.getAttribute('data-quote');
+
+    const modal = new bootstrap.Modal(document.getElementById('deleteImageModal'));
+    modal.show();
+});
+
+// Confirm delete
+document.getElementById('btnConfirmDelete')?.addEventListener('click', async function () {
+    const id = document.getElementById('delImageId').value;
+    const quoteId = document.getElementById('delQuoteId').value;
+    const form = document.getElementById('quoteImageUploadForm');
+    const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+
+    // disable button while deleting
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+
+    try {
+        const fd = new FormData();
+        fd.append('id', id);
+        fd.append('quoteId', quoteId);
+        fd.append('__RequestVerificationToken', token); // antiforgery in form body
+
+        const res = await fetch('@Url.Action("DeleteQuoteImage", "Image")', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: fd
+        });
+
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { throw new Error('Server error'); }
+
+        if (!data.success) {
+            if (typeof showToast === 'function') showToast(data.message || 'Delete failed.', 'danger');
+            return;
+        }
+
+        // Refresh the grid and hide modal
+        document.getElementById('quoteImagesGrid').innerHTML = data.html;
+        bootstrap.Modal.getInstance(document.getElementById('deleteImageModal')).hide();
+        if (typeof showToast === 'function') showToast('Image deleted.', 'success');
+    } catch (err) {
+        console.error(err);
+        if (typeof showToast === 'function') showToast('Unexpected error deleting image.', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Delete';
+    }
+});
+    </script>
+}

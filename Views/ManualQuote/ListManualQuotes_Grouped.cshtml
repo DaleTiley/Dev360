@@ -1,0 +1,127 @@
+﻿@model IEnumerable<MillenniumWebFixed.ViewModels.ManualQuoteSummaryVM>
+
+@{
+    ViewBag.Title = "Quotes (Grouped)";
+}
+
+<link rel="stylesheet" href="~/Content/DataTables/css/jquery.dataTables.min.css" />
+
+<table id="quotesGrouped" class="table table-striped table-sm align-middle w-100">
+    <thead>
+        <tr>
+            <th style="width:34px;"></th>
+            <th>Quote No</th>
+            <th>Latest Rev</th>
+            <th>Rev Count</th>
+            <th>Customer</th>
+            <th>Site Name</th>
+            <th>Sales Rep</th>
+            <th>Last Saved</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var q in Model)
+        {
+            <tr data-revisions='@Html.Raw(Json.Encode(q.Revisions))' data-quote='@q.QuoteNo'>
+                <td class="details-control"></td>
+                <td class="fw-semibold">@q.QuoteNo</td>
+                <td>@(q.LatestRevision ?? "-")</td>
+                <td>@q.RevCount</td>
+                <td>@(string.IsNullOrWhiteSpace(q.CustomerName) ? "N/A" : q.CustomerName)</td>
+                <td>@(q.SiteName ?? "-")</td>
+                <td>@(q.SalesRepName ?? "-")</td>
+                <td>@q.LastSaved.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <a class="btn btn-sm btn-dark"
+                       href="@Url.Action("ManualQuote_Tabs","ManualQuote", new { id = q.LatestQuoteId })">
+                        View Latest
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<style>
+    td.details-control {
+        cursor: pointer;
+        text-align: center;
+    }
+
+        td.details-control::before {
+            content: "＋";
+            font-weight: 700;
+        }
+
+    tr.shown td.details-control::before {
+        content: "－";
+    }
+</style>
+
+@section scripts{
+    <script src="~/Scripts/DataTables/jquery.dataTables.min.js"></script>
+    <script>
+        // Build the child row (revisions table)
+        function renderChild(revs) {
+            let html = `
+<div class="p-2">
+  <table class="table table-sm table-striped mb-0">
+    <thead>
+      <tr>
+        <th style="width:120px">Revision</th>
+        <th style="width:160px">Saved</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>`;
+            for (const r of revs) {
+                // Saved is usually ISO; fallback to substring(0,10)
+                const saved = (r.Saved || '').toString().substring(0, 10);
+                html += `
+      <tr>
+        <td class="fw-semibold">${r.Rev ?? "-"}</td>
+        <td>${saved}</td>
+        <td>
+          <a class="btn btn-sm btn-outline-primary"
+             href="@Url.Content("~/ManualQuote/ManualQuote_Tabs")/${r.Id}">View</a>
+          <a class="btn btn-sm btn-outline-danger ms-1"
+             href="@Url.Action("GenerateManualQuotePdf","ManualQuote", new { quoteId = 0 })".replace("quoteId=0", "quoteId=" + r.Id)>PDF</a>
+        </td>
+      </tr>`;
+            }
+            html += `
+    </tbody>
+  </table>
+</div>`;
+            return html;
+        }
+
+        $(function () {
+            const table = $('#quotesGrouped').DataTable({
+                pageLength: 10,
+                order: [[7, 'desc']], // Last Saved
+                columnDefs: [
+                    { targets: 0, orderable: false, searchable: false }, // expand col
+                    { targets: 8, orderable: false }                      // actions
+                ]
+            });
+
+            // expand / collapse
+            $('#quotesGrouped tbody').on('click.grouped', 'td.details-control', function () {
+                const tr = $(this).closest('tr');
+                const row = table.row(tr);
+
+                if (row.child.isShown()) {
+                    row.child.hide();
+                    tr.removeClass('shown');
+                } else {
+                    const revsJson = tr.attr('data-revisions');
+                    const revs = revsJson ? JSON.parse(revsJson) : [];
+                    row.child(renderChild(revs)).show();
+                    tr.addClass('shown');
+                }
+            });
+        });
+    </script>
+}

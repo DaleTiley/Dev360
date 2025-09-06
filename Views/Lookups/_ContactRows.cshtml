@@ -1,0 +1,23 @@
+﻿@using System.Web
+@using MillenniumWebFixed.ViewModels
+@model IEnumerable<ContactDropdownItem>
+
+@foreach (var r in Model ?? Enumerable.Empty<ContactDropdownItem>())
+{
+    var safeName = HttpUtility.JavaScriptStringEncode(r.Name ?? "");
+    var safePhone = HttpUtility.JavaScriptStringEncode(r.PhoneNumber ?? "");
+    var safeEmail = HttpUtility.JavaScriptStringEncode(r.Email ?? "");
+    <tr>
+        <td class="d-none">@r.ContactId</td>
+        <td>@r.Name</td>
+        <td>@r.Designation</td>
+        <td>@r.Email</td>
+        <td>@r.PhoneNumber</td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm theme-button"
+                    onclick="selectContact(@r.ContactId, '@Html.Raw(safeName)', '@Html.Raw(safePhone)', '@Html.Raw(safeEmail)')">
+                Select
+            </button>
+        </td>
+    </tr>
+}

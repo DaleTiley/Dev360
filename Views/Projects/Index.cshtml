@@ -1,0 +1,843 @@
+﻿@model IEnumerable<MillenniumWebFixed.Models.Project>
+@{
+    ViewBag.Title = "Projects";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+  /* -------------------------------------------------
+     Row highlight (beats DataTables striping/backdrop)
+  ---------------------------------------------------*/
+  #projectsTable tbody tr.qv-row-highlight > td {
+    background: rgba(13,110,253,.25) !important;     /* visible under modal backdrop */
+    box-shadow: inset 0 0 0 9999px rgba(13,110,253,.06);
+    transition: background .25s ease;
+    animation: qvPulse .6s ease-out 1;
+  }
+  #projectsTable tbody tr.qv-row-highlight > td:first-child {
+    position: relative;
+  }
+  #projectsTable tbody tr.qv-row-highlight > td:first-child::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: #0d6efd;
+  }
+
+  @@keyframes qvPulse {
+    0%   { box-shadow: inset 0 0 0 0 rgba(13,110,253,0); }
+    50%  { box-shadow: inset 0 0 0 9999px rgba(13,110,253,.10); }
+    100% { box-shadow: inset 0 0 0 9999px rgba(13,110,253,.06); }
+  }
+
+    /* Custom tooltip look */
+    /* Kill Bootstrap's default opacity */
+    .tooltip.custom-tooltip.show {
+        opacity: 1 !important;
+    }
+
+    /* Inner box solid white */
+    .tooltip.custom-tooltip .tooltip-inner {
+        background-color: #fff !important;
+        color: #0c2840;
+        border: 1px solid #0c2840;
+        font-weight: 500;
+        padding: .4rem .6rem;
+    }
+
+
+    .tooltip.custom-tooltip.bs-tooltip-top .tooltip-arrow::before,
+    .tooltip.custom-tooltip.bs-tooltip-bottom .tooltip-arrow::before,
+    .tooltip.custom-tooltip.bs-tooltip-start .tooltip-arrow::before,
+    .tooltip.custom-tooltip.bs-tooltip-end .tooltip-arrow::before {
+        border-color: #0c2840 !important;
+    }
+
+  /* ----------------------------------
+     Project code badge (left card)
+  ------------------------------------*/
+  .badge-project {
+    background: #e9f2ff;
+    color: #0c2840;
+    border: 1px solid rgba(0,0,0,.08);
+    font-weight: 600;
+    padding: .25rem .5rem;
+    border-radius: .5rem;
+  }
+
+  /* ----------------------------------
+     Table compactness & sizing
+  ------------------------------------*/
+    #projectsTable {
+        font-size: .8rem;
+    }
+
+        #projectsTable td, #projectsTable th {
+            padding: 4px 6px !important;
+            vertical-align: middle;
+        }
+    /* Truncation helpers */
+    .truncate {
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .truncate-sm {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+  /* Status pill */
+    .badge-status {
+        padding: .25rem .4rem;
+        font-weight: 600;
+        line-height: 1;
+    }
+
+  /* Keep the STATUS column from wrapping
+     (it's the 8th <td> in your markup) */
+  #projectsTable tbody td:nth-child(8) { white-space: nowrap; }
+
+  /* Extra-small buttons */
+  .btn-xxs {
+    padding: .25rem .35rem;
+    font-size: .72rem;
+    line-height: 1.2;
+    border-radius: .25rem;
+  }
+
+    /* Action icon buttons */
+    .btn-icon {
+        padding: .3rem .4rem;
+        line-height: 1;
+        border-radius: .35rem;
+    }
+
+        .btn-icon i {
+            width: 14px;
+            text-align: center;
+        }
+
+    /* Slightly larger icon buttons */
+    .btn-icon-md {
+        padding: .2rem .7rem;
+        font-size: .9rem;
+        border-radius: .35rem;
+    }
+
+        .btn-icon-md i {
+            width: 16px;
+        }
+
+    /* Narrow specific columns */
+    th.th-id {
+        width: 54px;
+    }
+
+    th.th-code {
+        width: 110px;
+    }
+
+    th.th-city {
+        width: 120px;
+    }
+
+    th.th-created {
+        width: 110px;
+    }
+
+    th.th-status {
+        width: 92px;
+    }
+
+    th.th-actions {
+        width: 132px;
+        text-align: center;
+    }
+  /* ----------------------------------
+     Header well + modal pieces
+  ------------------------------------*/
+  .page-header-card {
+    background: #fff;
+    border: 1px solid black;
+    border-radius: .5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,.06);
+  }
+
+  .theme-header {
+    background: #0c2840;
+    color: #fff;
+  }
+  .theme-header .btn-close { filter: invert(1); }     /* make the “X” white */
+
+  .qv-card {
+    border: 1px solid rgba(0,0,0,.12) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+
+  /* Aligned label/value rows inside cards */
+  .qv-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: .9rem;
+    margin-bottom: .25rem;
+  }
+  .qv-info-row .label {
+    width: 80px;                                      /* consistent label column */
+    color: #6c757d;
+    font-size: .8rem;
+  }
+
+  /* Toggle styling you already use */
+  #btnToggleNoClient.active {
+    background: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+  }
+
+    /* Make DT search container stack: Search on top, legend under it */
+    #projectsTable_filter {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end; /* keep it right-aligned */
+    }
+
+    /* Legend styling */
+    /* Legend as card with heading */
+    .dt-legend {
+        padding: 0; /* remove padding, inner body gets it */
+        background: #fff;
+        border: 1px solid #001c2b;
+        border-radius: .35rem;
+        color: #212529;
+        font-size: .8rem;
+        display: flex;
+        flex-direction: column; /* stack header + body */
+        margin-bottom: .5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,.05);
+    }
+
+    /* Heading bar */
+    .dt-legend-header {
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        font-weight: 600;
+        font-size: .8rem;
+        color: #0c2840;
+        padding: .35rem .75rem;
+        display: flex;
+        align-items: center;
+        gap: .35rem;
+        border-top-left-radius: .35rem;
+        border-top-right-radius: .35rem;
+    }
+
+        .dt-legend-header i {
+            color: #0d6efd; /* info blue icon */
+        }
+
+        .dt-legend .legend-label {
+            font-weight: 600;
+            color: #0c2840; /* theme dark blue */
+            font-size: .85rem;
+        }
+
+    /* Body */
+    .dt-legend-body {
+        padding: .5rem .75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+        .dt-legend-body .legend-icons {
+            display: flex;
+            gap: 1.25rem;
+        }
+
+            .dt-legend-body .legend-icons span {
+                display: flex;
+                align-items: center;
+                gap: .35rem;
+                font-weight: 500;
+            }
+
+        .dt-legend i { /* slightly larger icons */
+            font-size: 1.05rem;
+            margin-right: .35rem;
+            vertical-align: -1px;
+        }
+
+        .dt-legend .legend-eye {
+            color: #6c757d;
+        }
+        /* Quick View */
+        .dt-legend .legend-open {
+            color: #0d6efd;
+        }
+        /* Open Project */
+        .dt-legend .legend-edit {
+            color: #dc3545;
+        }
+</style>
+
+
+<div class="container mt-3">
+    <!-- Header card -->
+    <div class="page-header-card rounded shadow-sm p-3 mb-1 d-flex justify-content-between align-items-center">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h4 class="mb-0">Projects List</h4>
+                <span class="badge bg-secondary-subtle text-secondary border">@Model.Count() total</span>
+            </div>
+            <div class="text-muted small">Create and manage manual projects. Use quick filters or the search box.</div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <!-- Quick filter: Status -->
+            <select id="statusFilter" class="form-select form-select-sm w-auto">
+                <option value="">All statuses</option>
+                <option value="Active">Active</option>
+                <option value="On Hold">On Hold</option>
+                <option value="Closed">Closed</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+
+            <!-- NEW: No Client + PDF -->
+            <button id="btnToggleCashSales" type="button" class="btn btn-sm btn-outline-secondary">
+                <i class="fa fa-money-bill me-1"></i> Show Cash Sales
+            </button>
+
+            <button id="btnExportPdf" type="button" class="btn btn-sm btn-outline-primary" title="Export visible rows">
+                <i class="fa fa-file-pdf me-1"></i> Export PDF
+            </button>
+            <span id="dtHiddenButtons" class="d-none"></span>
+
+            <a class="btn theme-button btn-sm" href="@Url.Action("Create")">
+                <i class="fas fa-folder-plus me-1"></i> New Manual Project
+            </a>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive small">
+        <div class="dt-legend">
+            @*<div class="dt-legend-header">
+                <i class="fas fa-info-circle"></i> Actions Column Legend
+            </div>*@
+            <div class="dt-legend-body">
+                <div class="legend-label">Use the icons to manage projects:</div>
+                <div class="legend-icons">
+                    <span><i class="fas fa-eye legend-eye"></i> Quick View Project (Summary)</span>
+                    <span><i class="fas fa-folder-open legend-open"></i> Open Entire Project (Quotes, Sales, etc.)</span>
+                    <span><i class="fas fa-edit legend-edit"></i> Open Main Project For Edit</span>
+                </div>
+            </div>
+        </div>
+        <table id="projectsTable" class="table table-bordered table-sm table-striped w-100">
+            <thead class="table-dark">
+                <tr>
+                    <th class="th-id">Id</th>
+                    <th class="th-code">Project Code</th>
+                    <th>Client</th>
+                    <th>Contact</th>
+                    <th class="th-city">City</th>
+                    <th class="th-created">Created</th>
+                    <th>Sales</th>
+                    <th>Designer</th>
+                    <th class="th-status text-center">Status</th>
+                    <th class="th-actions text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+
+                    <tr>
+                        <td>@p.Id</td>
+
+                        <!-- Code (monospace + no wrap) -->
+                        <td class="text-monospace fw-semibold"><span class="truncate-sm" title="@p.ProjectCode">@p.ProjectCode</span></td>
+
+                        <!-- Client / Contact can truncate but keep full on hover -->
+                        <td><span class="truncate" title="@p.ClientName">@p.ClientName</span></td>
+                        <td><span class="truncate" title="@p.ContactName">@p.ContactName</span></td>
+
+                        <!-- City -->
+                        <td><span class="truncate-sm" title="@p.SiteCity">@p.SiteCity</span></td>
+
+                        <!-- Created: date only, full timestamp in title; keep sort via data-order -->
+                        <td data-order="@p.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss")"
+                            title="@p.CreatedAt.ToString("yyyy-MM-dd HH:mm")">
+                            @p.CreatedAt.ToString("yyyy-MM-dd")
+                        </td>
+
+                        <!-- Sales / Designer -->
+                        <td>
+                            <span class="truncate-sm" title="@(string.IsNullOrWhiteSpace(p.SalesPerson) ? "—" : p.SalesPerson)">
+                                @(string.IsNullOrWhiteSpace(p.SalesPerson) ? "—" : p.SalesPerson)
+                            </span>
+                        </td>
+                        <td>
+                            <span class="truncate-sm" title="@(string.IsNullOrWhiteSpace(p.Designer) ? "—" : p.Designer)">
+                                @(string.IsNullOrWhiteSpace(p.Designer) ? "—" : p.Designer)
+                            </span>
+                        </td>
+
+                        <!-- Status -->
+                        <td class="text-center">
+                            @{
+                                var statusText = p.Status ?? "Active";
+                                Func<string, string> statusBadge = s =>
+                                {
+                                    var t = (s ?? "").Trim();
+                                    return t.Equals("Active", StringComparison.OrdinalIgnoreCase) ? "bg-success"
+                                         : t.Equals("On Hold", StringComparison.OrdinalIgnoreCase) ? "bg-warning text-dark"
+                                         : t.Equals("Closed", StringComparison.OrdinalIgnoreCase) ? "bg-secondary"
+                                         : t.Equals("Cancelled", StringComparison.OrdinalIgnoreCase) ? "bg-danger"
+                                         : "bg-secondary";
+                                };
+                            }
+                            <span class="badge badge-status @statusBadge(statusText)">@statusText</span>
+                        </td>
+
+                        <!-- Actions: icons + tooltips -->
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button"
+                                        class="btn btn-outline-secondary btn-icon-md btn-quick-view"
+                                        data-id="@p.Id"
+                                        data-bs-toggle="tooltip"
+                                        title="Quick View Project<br /><small>(@p.ProjectCode)</small>">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+
+                                <a class="btn btn-outline-primary btn-icon-md"
+                                   href="@Url.Action("Details", new { id = p.Id })"
+                                   data-nav-spinner="1"
+                                   data-bs-toggle="tooltip"
+                                   title="Open Enitre Project (Quotes/Sales etc.)<br /><small>(@p.ProjectCode)</small>">
+                                    <i class="fas fa-folder-open"></i>
+                                </a>
+
+                                <a class="btn btn-outline-danger btn-icon-md"
+                                   href="@Url.Action("Edit", new { id = p.Id })"
+                                   data-nav-spinner="1"
+                                   data-bs-toggle="tooltip"
+                                   title="Open Project Only For Edit<br /><small>(@p.ProjectCode)</small>">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Quick View Modal -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header theme-header">
+                <h6 class="modal-title">Project Quick View</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="qv-loading" class="text-muted small">Loading…</div>
+
+                <div id="qv-content" class="d-none">
+                    <div class="row g-3">
+
+                        <!-- LEFT CARD: Name + Code badge + Quick facts -->
+                        <div class="col-md-6">
+                            <div class="card border-0 qv-card">
+                                <div class="card-body py-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="fw-bold" id="qv-projectname">—</div>
+                                        <span class="badge badge-project" id="qv-projectcode">—</span>
+                                    </div>
+                                    <div class="qv-info-row">
+                                        <span class="label">ERP #:</span>
+                                        <span id="qv-erp">—</span>
+                                    </div>
+                                    <div class="qv-info-row">
+                                        <span class="label">Sales:</span>
+                                        <span id="qv-salesperson">—</span>
+                                    </div>
+                                    <div class="qv-info-row">
+                                        <span class="label">Township:</span>
+                                        <span id="qv-township">—</span>
+                                    </div>
+                                    <div class="qv-info-row">
+                                        <span class="label">Stand:</span>
+                                        <span id="qv-stand">—</span>
+                                    </div>
+                                    <div class="qv-info-row">
+                                        <span class="label">Portion:</span>
+                                        <span id="qv-portion">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT CARD: Status / Designer / Created / By -->
+                        <div class="col-md-6">
+                            <div class="card border-0 qv-card">
+                                <div class="card-body py-3">
+                                    <div class="qv-info-row">
+                                        <span class="label">Status:</span>
+                                        <span><span class="badge" id="qv-status"></span></span>
+                                    </div>
+                                    <div class="qv-info-row">
+                                        <span class="label">Designer:</span>
+                                        <span id="qv-designer"></span>
+                                    </div>
+                                    <div class="qv-info-row">
+                                        <span class="label">Created:</span>
+                                        <span id="qv-created"></span>
+                                    </div>
+                                    <div class="qv-info-row">
+                                        <span class="label">Created By:</span>
+                                        <span id="qv-createdby"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CLIENT / CONTACT / SITE -->
+                        <div class="col-12">
+                            <div class="card border-0 qv-card">
+                                <div class="card-body py-3">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="text-muted small">Client</div>
+                                            <div id="qv-client" class="fw-semibold"></div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-muted small">Contact</div>
+                                            <div id="qv-contact" class="fw-semibold"></div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="text-muted small">Site</div>
+                                            <div id="qv-site" class="fw-semibold"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- COUNTS + OPEN BUTTON -->
+                        <div class="col-12">
+                            <div class="card border-0 qv-card">
+                                <div class="card-body py-3">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                        <div class="d-flex gap-3 flex-wrap">
+                                            <div><span class="text-muted small">Quotes:</span> <span class="fw-bold" id="qv-quotes">0</span></div>
+                                            <div><span class="text-muted small">Tenders:</span> <span class="fw-bold" id="qv-tenders">0</span></div>
+                                            <div><span class="text-muted small">Attachments:</span> <span class="fw-bold" id="qv-attachments">0</span></div>
+                                        </div>
+                                        <a id="qv-open-link" class="btn theme-button btn-sm mt-2 mt-sm-0" href="#">
+                                            Open Project <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> <!-- /.row -->
+                </div>   <!-- /#qv-content -->
+            </div>     <!-- /.modal-body -->
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section scripts {
+    <script>
+        (function () {
+          // --- Bootstrap modal ---
+          const modalEl = document.getElementById('quickViewModal');
+          const bsModal = new bootstrap.Modal(modalEl);
+
+          // --- helpers ---
+          const el    = (id) => document.getElementById(id);
+          const clean = (v) => (v && String(v).trim().length ? String(v).trim() : '—');
+
+          const statusBadgeClass = (s) => {
+            s = (s || '').toLowerCase();
+            if (s === 'active')    return 'bg-success';
+            if (s === 'on hold')   return 'bg-warning text-dark';
+            if (s === 'closed')    return 'bg-secondary';
+            if (s === 'cancelled') return 'bg-danger';
+            return 'bg-secondary';
+          };
+
+          // DataTables handle (if already initialized on this table)
+          const dt = $.fn.dataTable.isDataTable('#projectsTable')
+            ? $('#projectsTable').DataTable()
+            : null;
+
+          let highlightedRow = null; // track highlighted TR
+
+          // --- Quick View click ---
+          $('#projectsTable').on('click', '.btn-quick-view', function () {
+            const id = this.getAttribute('data-id');
+            if (!id) return;
+
+            // Find the correct TR to highlight (handle Responsive “child” rows)
+            let $tr = $(this).closest('tr');
+            if ($tr.hasClass('child')) $tr = $tr.prev('tr'); // parent data row
+
+            const rowNode = dt ? dt.row($tr).node() : $tr.get(0);
+            $('#projectsTable tbody tr').removeClass('qv-row-highlight');
+            if (rowNode) {
+              $(rowNode).addClass('qv-row-highlight');
+              highlightedRow = rowNode;
+              if (rowNode.scrollIntoView) {
+                rowNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }
+
+            // Reset + show modal
+            el('qv-loading').classList.remove('d-none');
+            el('qv-content').classList.add('d-none');
+            bsModal.show();
+
+            // Fetch summary
+            $.getJSON('@Url.Action("QuickSummary", "Projects")', { id })
+              .done(function (vm) {
+                // Header: Project Name (left) + Project Code badge (right)
+                const name = clean(vm.ProjectName || vm.ClientName || vm.SiteName);
+                const code = clean(vm.ProjectCode);
+                el('qv-projectname').textContent = name;
+                el('qv-projectcode').textContent = code;
+
+                // Left card quick facts
+                el('qv-erp').textContent         = clean(vm.ERPNumber);
+                el('qv-salesperson').textContent = clean(vm.SalesPerson);
+                el('qv-township').textContent    = clean(vm.Township);
+                el('qv-stand').textContent       = clean(vm.StandNumber);
+                el('qv-portion').textContent     = clean(vm.PortionNumber);
+
+                // Right card
+                const statusEl = el('qv-status');
+                statusEl.textContent = clean(vm.Status);
+                statusEl.className   = 'badge ' + statusBadgeClass(vm.Status);
+
+                el('qv-designer').textContent  = clean(vm.Designer);
+                el('qv-created').textContent   = clean(vm.CreatedAtDisplay);
+                el('qv-createdby').textContent = clean(vm.CreatedBy);
+
+                // Client / contact / site
+                el('qv-client').textContent  = clean(vm.ClientName);
+                el('qv-contact').textContent = clean(vm.ContactName);
+                const siteBits = [vm.SiteAddress1, vm.SiteCity, vm.SiteProvince, vm.SitePostcode]
+                  .filter(v => v && String(v).trim());
+                el('qv-site').textContent = siteBits.length ? siteBits.join(', ') : '—';
+
+                // Counts + open link
+                el('qv-quotes').textContent      = vm.QuotesCount ?? 0;
+                el('qv-tenders').textContent     = vm.TendersCount ?? 0;
+                el('qv-attachments').textContent = vm.AttachmentsCount ?? 0;
+                el('qv-open-link').onclick = function (e) {
+                  e.preventDefault();
+                  if (typeof showSpinner === 'function') {
+                    showSpinner('Loading…');
+                  }
+                  window.location.href = '@Url.Action("Details","Projects")/' + vm.Id;
+                };
+
+                // Reveal content
+                el('qv-loading').classList.add('d-none');
+                el('qv-content').classList.remove('d-none');
+              })
+              .fail(function () {
+                el('qv-loading').textContent = 'Failed to load summary.';
+              });
+          });
+
+          // Clear highlight when modal closes
+          modalEl.addEventListener('hidden.bs.modal', function () {
+            $('#projectsTable tbody tr').removeClass('qv-row-highlight');
+            highlightedRow = null;
+          });
+        })();
+    </script>
+
+
+    <script>
+        $(function () {
+            // ---- utils -------------------------------------------------
+            function ts() {
+                const d = new Date(), pad = n => String(n).padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+            }
+
+            // preload logo (base64) once; safe if it finishes after init
+            (function preloadPdfLogo() {
+                const url = '/PdfTemplates/Images/logo_white.png';
+                fetch(url).then(r => r.blob())
+                    .then(b => new Promise(res => { const fr = new FileReader(); fr.onload = e => res(e.target.result); fr.readAsDataURL(b); }))
+                    .then(dataUrl => window.pdfLogo = dataUrl)
+                    .catch(() => { /* no logo? no problem */ });
+            })();
+
+            // ---- DataTable + PDF export --------------------------------
+            var hasButtons = $.fn.dataTable && $.fn.dataTable.Buttons;
+
+            var table = $('#projectsTable').DataTable({
+                responsive: true,
+                pageLength: 5,
+                lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, "All"]],
+                order: [[0, 'desc']],
+                columnDefs: [
+                    { targets: 0, visible: false, searchable: false },           // hide Id
+                    // Responsive priorities (lower number = keep longer)
+                    { targets: 1, responsivePriority: 1 },   // Code
+                    { targets: 2, responsivePriority: 2 },   // Client
+                    { targets: 9, responsivePriority: 3 },   // Actions
+                    { targets: 8, responsivePriority: 4 },   // Status
+                    { targets: 5, responsivePriority: 5 },   // Created
+                    { targets: [3, 6, 7], responsivePriority: 6 } // Contact, Sales, Designer collapse first
+                ]
+            });
+
+            // Bootstrap tooltips for action icons
+            const initTooltips = () => {
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                    new bootstrap.Tooltip(el, {
+                        customClass: 'custom-tooltip',
+                        html: true   // allow <br>, <small>, etc.
+                    });
+                });
+            };
+
+            initTooltips();
+
+            // Re-init tooltips after each draw (important for paging)
+            table.on('draw', initTooltips);
+
+            if (hasButtons) {
+                new $.fn.dataTable.Buttons(table, {
+                    buttons: [{
+                        extend: 'pdfHtml5',
+                        title: ' ',                                 // we inject our own header
+                        filename: () => `Projects_List_${ts()}`,    // unique file name
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7, 8],             // skip hidden Id col (0)
+                            modifier: { search: 'applied' }
+                        },
+                        customize: function (doc) {
+                            // neat margins
+                            doc.pageMargins = [20, 20, 20, 20];
+
+                            // replace default title with: left title + right logo
+                            doc.content[0] = {
+                                columns: [
+                                    { text: 'Projects — Millennium Roofing', style: 'reportTitle', alignment: 'left' },
+                                    window.pdfLogo ? { image: window.pdfLogo, width: 90, alignment: 'right' } : { text: '' }
+                                ],
+                                columnGap: 10,
+                                margin: [0, 0, 0, 12]
+                            };
+                            doc.styles.reportTitle = { fontSize: 14, bold: true };
+
+                            // Left-align table headers
+                            doc.styles.tableHeader = doc.styles.tableHeader || {};
+                            doc.styles.tableHeader.alignment = 'left';
+
+                            // make the table 100% width
+                            var tbl = doc.content.find(c => c.table);
+                            if (tbl && tbl.table && tbl.table.body && tbl.table.body.length) {
+                                var colCount = tbl.table.body[0].length;
+                                tbl.table.widths = Array(colCount).fill('*');
+                            }
+                        }
+                    }]
+                });
+
+                // place the buttons wherever you like
+                table.buttons().container().appendTo('#dtHiddenButtons');
+            }
+
+
+            // Status filter (col 6)
+            $('#statusFilter').on('change', function () {
+                var v = this.value;
+                table.column(7).search(v ? '^' + v + '$' : '', true, false).draw();
+            });
+
+            // Client is column index 2
+            var cashOnly = false;
+
+            $('#btnToggleCashSales').on('click', function () {
+                cashOnly = !cashOnly;
+
+                $(this)
+                    .toggleClass('btn-outline-secondary', !cashOnly)
+                    .toggleClass('btn-primary', cashOnly)
+                    .html(cashOnly
+                        ? '<i class="fa fa-money-bill me-1"></i> Show All'
+                        : '<i class="fa fa-money-bill me-1"></i> Show Cash Sales');
+
+                // Exact match (case-insensitive), allow stray spaces
+                var pattern = cashOnly ? '^\\s*Cash\\s*Sale\\s*$' : '';
+                table.column(2).search(pattern, /*regex*/ true, /*smart*/ false, /*caseInsensitive*/ true).draw();
+            });
+
+
+            // PDF export trigger
+            $('#btnExportPdf').on('click', function () {
+                if (hasButtons) {
+                    table.button('.buttons-pdf').trigger();
+                } else {
+                    // graceful fallback if Buttons not loaded
+                    window.print();
+                }
+            });
+        });
+
+        // Show spinner on nav actions (View Detail / Edit)
+        $('#projectsTable').on('click', 'a[data-nav-spinner]', function (e) {
+            // respect open-in-new-tab (Ctrl/Cmd or middle click)
+            if (e.metaKey || e.ctrlKey || e.which === 2) return;
+
+            e.preventDefault();
+            var href = this.href;
+
+            // visual feedback + prevent double-clicks
+            if (typeof showSpinner === 'function') showSpinner('Loading…');
+            this.classList.add('disabled');
+            this.setAttribute('aria-disabled', 'true');
+            this.style.pointerEvents = 'none';
+
+            // allow the spinner to paint before navigating
+            requestAnimationFrame(function () {
+                setTimeout(function () { window.location.href = href; }, 30);
+            });
+        });
+
+        // (nice to have) hide spinner when page is shown via bfcache/back
+        window.addEventListener('pageshow', function () {
+            if (typeof hideSpinner === 'function') hideSpinner();
+        });
+
+    </script>
+}
+
+

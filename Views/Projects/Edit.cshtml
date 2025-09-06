@@ -1,0 +1,84 @@
+﻿@model MillenniumWebFixed.Models.ProjectCreateVm
+@{
+    ViewBag.Title = "Edit Project";
+    var projectId = (int)ViewBag.ProjectId; // set by controller
+    var showTabs = false;
+    var navTabsClass = showTabs ? "nav nav-tabs" : "nav nav-tabs d-none";
+    var otherPaneClass = showTabs ? "tab-pane fade" : "tab-pane fade d-none";
+}
+<style>
+    input[readonly].form-control {
+        background: #e9ecef;
+        opacity: 1;
+        cursor: not-allowed;
+    }
+
+    .btn-clear {
+        background: #fff;
+        color: #dc3545;
+        border: 1px solid #dc3545;
+    }
+
+        .btn-clear:hover, .btn-clear:focus {
+            background: #dc3545;
+            color: #fff;
+        }
+</style>
+
+<h5 class="mb-3">Edit Project <span class="text-muted">(@Model.ProjectCode)</span></h5>
+
+<ul class="@navTabsClass" id="projTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general"
+                type="button" role="tab" aria-controls="general" aria-selected="true">
+            General
+        </button>
+    </li>
+    <li class="nav-item" role="presentation"><button class="nav-link" id="quote-tab" data-bs-toggle="tab" data-bs-target="#quote" type="button" role="tab">Quote</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" id="tender-tab" data-bs-toggle="tab" data-bs-target="#tender" type="button" role="tab">Tender</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" id="order-tab" data-bs-toggle="tab" data-bs-target="#order" type="button" role="tab">Order</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales" type="button" role="tab">Sales</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" id="attachments-tab" data-bs-toggle="tab" data-bs-target="#attachments" type="button" role="tab">Attachments</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" id="audit-tab" data-bs-toggle="tab" data-bs-target="#audit" type="button" role="tab">Audit</button></li>
+</ul>
+
+<div class="tab-content border p-3 rounded" id="projTabsContent">
+    <div id="general" class="tab-pane fade show active" role="tabpanel" aria-labelledby="general-tab">
+        @using (Html.BeginForm("Edit", "Projects", new { id = projectId }, FormMethod.Post, new { enctype = "multipart/form-data", id = "projectEditForm" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Partial("Partials/_ProjectEdit", Model, new ViewDataDictionary { { "ProjectId", projectId } })
+        }
+    </div>
+
+    <!-- Other panes hidden for now -->
+    <div id="quote" class="@otherPaneClass" role="tabpanel" aria-labelledby="quote-tab"><div class="text-muted">Quote info is available on the Details page.</div></div>
+    <div id="tender" class="@otherPaneClass" role="tabpanel" aria-labelledby="tender-tab"><div class="text-muted">Tender info is available on the Details page.</div></div>
+    <div id="order" class="@otherPaneClass" role="tabpanel" aria-labelledby="order-tab"><div class="text-muted">Order info is available on the Details page.</div></div>
+    <div id="sales" class="@otherPaneClass" role="tabpanel" aria-labelledby="sales-tab"><div class="text-muted">Sales info is available on the Details page.</div></div>
+    <div id="attachments" class="@otherPaneClass" role="tabpanel" aria-labelledby="attachments-tab"><div class="text-muted">Attachments are managed on the Details page.</div></div>
+    <div id="audit" class="@otherPaneClass" role="tabpanel" aria-labelledby="audit-tab"><div class="text-muted">Audit tab coming soon.</div></div>
+</div>
+
+@using MillenniumWebFixed.ViewModels
+@using System.Linq
+@Html.Partial("~/Views/ManualQuote/_CustomerSearchModal.cshtml", Enumerable.Empty<CustomerDropdownItem>())
+@Html.Partial("~/Views/ManualQuote/_ContactSearchModal.cshtml", Enumerable.Empty<ContactDropdownItem>())
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+      window.lookupUrls = {
+        customerRows: '@Url.Action("CustomerRows","Lookups")',
+        contactRows:  '@Url.Action("ContactRows","Lookups")'
+      };
+    </script>
+    <script src="~/Scripts/project-create.js"></script>
+}
+
+@section Modals {
+    @Html.Partial("~/Views/Shared/_ValidationModal.cshtml")
+}

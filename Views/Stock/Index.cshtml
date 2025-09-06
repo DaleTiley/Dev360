@@ -1,0 +1,61 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Stock Management";
+}
+
+<div class="container mt-1">
+    <h5 class="mb-3">Stock Management</h5>
+
+    <!-- JSON-BASED SYSTEM -->
+    <h6 class="mb-2 text-muted">Normalized Product Data</h6>
+    <div class="d-flex justify-content-start gap-4 mb-4 flex-wrap">
+        <!-- View Normalized Products -->
+        <div class="card dashboard-card text-center" onclick="location.href='@Url.Action("ListStockJson", "Stock")'">
+            <i class="fas fa-box-open dashboard-icon"></i>
+            <div class="card-title">View Stock List<br />(Complete list)</div>
+        </div>
+        <!-- Import Normalized Products -->
+        <div class="card dashboard-card text-center" onclick="location.href='@Url.Action("ImportStockJson", "Stock")'">
+            <i class="fas fa-cubes dashboard-icon"></i>
+            <div class="card-title">Import Stock<br />(JSON File Model)</div>
+        </div>
+    </div>
+
+    <!-- Stock Reference Tables -->
+    <h6 class="mb-2 text-muted">Stock Reference Tables</h6>
+    <div class="d-flex flex-wrap gap-4 mb-4">
+        <div class="card dashboard-card text-center" onclick="location.href='@Url.Action("Index", "ItemType")'">
+            <i class="fas fa-tags dashboard-icon"></i>
+            <div class="card-title">Item Types</div>
+        </div>
+        <div class="card dashboard-card text-center" onclick="location.href='@Url.Action("Index", "UOM")'">
+            <i class="fas fa-balance-scale dashboard-icon"></i>
+            <div class="card-title">Units of Measure</div>
+        </div>
+
+        <div class="card dashboard-card text-center" onclick="location.href='@Url.Action("Index", "UOMConversion")'">
+            <i class="fas fa-exchange-alt dashboard-icon"></i>
+            <div class="card-title">UOM Conversions</div>
+        </div>
+        <div class="card dashboard-card text-center" onclick="location.href='@Url.Action("ProductMappings", "Admin")'">
+            <i class="fas fa-link dashboard-icon"></i>
+            <div class="card-title">Product Mappings</div>
+        </div>
+    </div>
+
+    <!-- LEGACY SYSTEM -->
+    <!--<h6 class="mb-2 text-muted">Legacy Excel System</h6>
+    <div class="d-flex justify-content-left gap-4 flex-wrap">-->
+    <!-- View Old Stock -->
+    <!--<div class="card dashboard-card text-center" onclick="location.href='@Url.Action("List", "Stock")'">
+        <i class="fas fa-boxes dashboard-icon"></i>
+        <div class="card-title">View Stock (Legacy)</div>
+    </div>-->
+    <!-- Import Old Stock -->
+    <!--<div class="card dashboard-card text-center" onclick="location.href='@Url.Action("Import", "Stock")'">
+            <i class="fas fa-file-import dashboard-icon"></i>
+            <div class="card-title">Import Stock (Excel)</div>
+        </div>
+    </div>-->
+</div>
+

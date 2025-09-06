@@ -1,0 +1,57 @@
+﻿@model List<MillenniumWebFixed.Models.ManualQuote>
+@{
+    ViewBag.Title = "Manual Quotes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3 class="mb-3">Manual Quotes</h3>
+
+<table class="table table-bordered table-striped table-hover table-sm align-middle small" id="quotesTable">
+    <thead class="table-dark">
+        <tr>
+            <th>Quote No</th>
+            <th>Revision</th>
+            <th>Import Date</th>
+            <th>Customer</th>
+            <th>Site Name</th>
+            <th>Sales Rep</th>
+            <th class="text-center" style="width: 160px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var quote in Model)
+        {
+            <tr>
+                <td>@quote.QuoteNo</td>
+                <td>@quote.RevisionID</td>
+                <td>@(quote.ImportDate?.ToString("yyyy-MM-dd") ?? "")</td>
+                <td>@(quote.PotentialCustomer?.FullName ?? "N/A")</td>
+                <td>@quote.SiteName</td>
+                <td>@(quote.SalesRep?.FullName ?? "N/A")</td>
+                <td class="text-center">
+                    <a href="@Url.Action("ManualQuote_Tabs", "ManualQuote", new { id = quote.Id })"
+                       class="btn btn-sm theme-button me-1"
+                       onclick="showSpinner('Loading Quote Data...')">View</a>
+
+                    @if (!string.IsNullOrEmpty(quote.GeneratedPdfPath))
+                    {
+                        <a href="@Url.Content(quote.GeneratedPdfPath)" target="_blank" class="btn btn-sm btn-danger me-1">PDF</a>
+                    }
+
+                    @*<a href="@Url.Action("EmailQuote", "ManualQuote", new { id = quote.Id })" class="btn btn-sm btn-success">Email</a>*@
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#quotesTable').DataTable({
+                responsive: true,
+                pageLength: 10
+            });
+        });
+    </script>
+}

@@ -1,0 +1,26 @@
+﻿@using System.Web
+@using MillenniumWebFixed.ViewModels
+@model IEnumerable<CustomerDropdownItem>
+
+@foreach (var r in Model ?? Enumerable.Empty<CustomerDropdownItem>())
+{
+    var safeName = HttpUtility.JavaScriptStringEncode(r.CustomerName ?? "");
+    <tr>
+        <td class="d-none">@r.Id</td>
+        <td>@r.CustomerName</td>
+        <td>@r.ContactPerson</td>
+        <td>@r.Email</td>
+        <td>@r.CustomerCode</td>
+        <td>@r.AddressLine1</td>
+        <td>@r.AddressLine2</td>
+        <td>@r.City</td>
+        <td>@r.StateProvince</td>
+        <td>@r.Phone</td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm theme-button"
+                    onclick="selectCustomer(@r.Id, '@Html.Raw(safeName)')">
+                Select
+            </button>
+        </td>
+    </tr>
+}

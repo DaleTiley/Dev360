@@ -1,0 +1,52 @@
+﻿@model MillenniumWebFixed.ViewModels.ManualQuoteViewModel
+
+<div class="row mb-1">
+    <div class="col-md-6">
+        <label for="PotentialCustomerName" class="form-label small">Potential Customer</label>
+        <div class="input-group">
+            <input type="text" class="form-control form-control-sm required-field" id="PotentialCustomerName" name="PotentialCustomerName"
+                   placeholder="Select Customer" readonly
+                   value="@Model.PotentialCustomerName" />
+            <input type="hidden" id="PotentialCustomerId" name="PotentialCustomerId" value="@Model.PotentialCustomerId" />
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openCustomerSearchModal()">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="SalesRepId" class="form-label small">Sales Representative</label>
+        @Html.DropDownListFor(model => model.SalesRepId,
+            new SelectList(Model.SalesRepOptions, "Value", "Text", Model.SalesRepId),
+            "---",
+            new { @class = "form-select form-select-sm required-field" })
+    </div>
+</div>
+
+<div class="row mb-1">
+    <div class="col-md-6">
+        <label for="SelectedContactName" class="form-label small">Contact Person</label>
+        <div class="input-group">
+            <input type="text" class="form-control form-control-sm required-field" id="SelectedContactName" name="SelectedContactName"
+                   placeholder="Select Contact" readonly
+                   value="@Model.SelectedContactName" />
+            <input type="hidden" id="SelectedContactId" name="SelectedContactId" value="@Model.SelectedContactId" />
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openContactSearchModal()">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <label for="SelectedEnquiryNumber" class="form-label small">Enquiry Number</label>
+        <div class="input-group">
+            <input type="text" class="form-control form-control-sm required-field" id="SelectedEnquiryNumber" name="SelectedEnquiryNumber"
+                   placeholder="Select Enquiry" readonly
+                   value="@Model.SelectedEnquiryNumber" />
+            <input type="hidden" id="SelectedEnquiryId" name="SelectedEnquiryId" value="@Model.SelectedEnquiryId" />
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openEnquirySearchModal()">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+</div>

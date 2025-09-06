@@ -1,0 +1,97 @@
+﻿@model IEnumerable<MillenniumWebFixed.ViewModels.ExcelProjectListItemViewModel>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Excel Project Management";
+}
+
+@functions {
+    public string GetRelativeTime(DateTime createdAt)
+    {
+        if (createdAt.Date == DateTime.Now.Date)
+        {
+            var timespan = DateTime.Now - createdAt;
+            if (timespan.TotalMinutes < 1)
+                return "Just now";
+            if (timespan.TotalMinutes < 60)
+                return $"{(int)timespan.TotalMinutes} minutes ago";
+            if (timespan.TotalHours < 24)
+                return $"{(int)timespan.TotalHours} hours ago";
+        }
+        return createdAt.ToString("yyyy-MM-dd HH:mm");
+    }
+
+    public bool IsNewProject(DateTime createdAt)
+    {
+        return (DateTime.Now - createdAt).TotalMinutes <= 60;
+    }
+}
+
+<style>
+    #projectsTable td {
+        background-color: white !important; /* Ensure background is white */
+        font-size: 0.8rem; /* Keep it small and compact */
+        vertical-align: middle;
+    }
+</style>
+
+<div class="container mt-0">
+    <h5 class="mb-4">Excel Project Management</h5>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <table id="projectsTable" class="table table-sm table-hover table-bordered">
+        <thead class="table-dark" style="font-size: 0.85rem;">
+            <tr>
+                <th>Designer</th>
+                <th>Customer Name</th>
+                <th>Project Name</th>
+                <th>Fabricator</th>
+                <th class="text-center">Version</th>
+                <th>Created</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Data.Designer</td>
+                    <td>@item.Data.CustomerName</td>
+                    <td>@item.Data.ProjectName</td>
+                    <td>@item.Data.Fabricator</td>
+                    <td class="text-center">@item.Data.Version</td>
+                    <td class="align-items-center">
+                        <span>⏱ @GetRelativeTime(item.Data.CreatedAt ?? DateTime.Now)</span>
+                    </td>
+                    <td class="text-center">
+                        <a href="@Url.Action("DetailsExcel", "Import", new { id = item.Data.Id })" class="btn btn-sm theme-button px-4">View</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a href="@Url.Action("ImportExcel", "Import")" class="btn btn-sm theme-button mt-3">
+        <i class="fas fa-file-excel"></i> Import New Excel Project
+    </a>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#projectsTable').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                autoWidth: false
+            });
+        });
+    </script>
+}

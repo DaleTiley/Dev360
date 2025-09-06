@@ -1,0 +1,42 @@
+﻿@model MillenniumWebFixed.ViewModels.ManualQuoteViewModel
+
+<div class="row mb-1">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.RoofPitch, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.RoofPitch, new { @class = "form-control form-control-sm required-field" })
+    </div>
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.MaxBattenCenters, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.MaxBattenCenters, new { @class = "form-control form-control-sm required-field" })
+    </div>
+</div>
+<div class="row mb-1">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.RoofOverhang, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.RoofOverhang, new { @class = "form-control form-control-sm required-field" })
+    </div>
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.MaxTrustCenters, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.MaxTrustCenters, new { @class = "form-control form-control-sm required-field" })
+    </div>
+</div>
+<div class="row mb-1">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.RoofGableOverhang, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.RoofGableOverhang, new { @class = "form-control form-control-sm required-field" })
+    </div>
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.FloorArea, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.FloorArea, new { @class = "form-control form-control-sm required-field" })
+    </div>
+</div>
+<div class="row mb-1">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.RoofCovering, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.RoofCovering, new { @class = "form-control form-control-sm required-field" })
+    </div>
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.RoofArea, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.RoofArea, new { @class = "form-control form-control-sm required-field" })
+    </div>
+</div>

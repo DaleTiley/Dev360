@@ -1,0 +1,331 @@
+﻿@model IEnumerable<MillenniumWebFixed.Models.ProjectDocument>
+@{
+    var projectId = (int)ViewBag.ProjectId;
+}
+
+@functions{
+    private static readonly string[] ImgExts = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg" };
+    private bool IsImage(string pathOrName)
+    {
+        var ext = System.IO.Path.GetExtension(pathOrName ?? "").ToLowerInvariant();
+        return ImgExts.Contains(ext);
+    }
+    private string ToUrl(string storedPath)
+    {
+        var p = (storedPath ?? "").Replace("\\", "/");
+        return Url.Content(string.IsNullOrWhiteSpace(p) ? "" : p);
+    }
+}
+
+<style>
+    /* Header theme */
+    #docsTable thead th {
+        color: #fff;
+        background-color: #001C2B !important; /* theme */
+        border-color: rgba(255,255,255,.15);
+    }
+    /* Tight rows */
+    #docsTable td, #docsTable th {
+        padding: 6px 8px !important;
+        vertical-align: middle;
+        font-size: small !important;
+    }
+        /* Actions */
+        #docsTable td.actions {
+            white-space: nowrap;
+            text-align: center;
+        }
+
+    /* Dropzone */
+    #dropZone {
+        transition: background-color .15s ease;
+        cursor: pointer;
+    }
+
+        #dropZone.bg-light {
+            background-color: #f8f9fa !important;
+        }
+
+    /* micro buttons, smaller than btn-sm */
+    #docsTable .btn-xxs {
+        padding: 0.25rem .35rem;
+        font-size: .8rem;
+        line-height: 1.1;
+        border-radius: .2rem;
+    }
+
+        #docsTable .btn-xxs i {
+            margin-right: .25rem;
+            font-size: .9em;
+        }
+
+    /* fixed Actions column */
+    #docsTable th.actions-col,
+    #docsTable td.actions-col {
+        width: 180px !important; /* adjust if you want */
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    #docsTable .btn:disabled,
+    #docsTable .btn.disabled {
+        cursor: not-allowed !important;
+    }
+</style>
+
+<!-- Upload box -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body py-3">
+        @using (Html.BeginForm("UploadDocument", "Projects", FormMethod.Post, new { enctype = "multipart/form-data", data_upload_doc = "1" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Hidden("id", projectId)
+
+            <div class="row g-2 align-items-center">
+                <div class="col-12">
+                    <div id="dropZone" class="border rounded p-3 d-flex align-items-center justify-content-between">
+                        <div class="me-3">
+                            <div class="fw-semibold">Drop files here or click to choose</div>
+                            <div class="text-muted small">Images (JPG/PNG/GIF/WebP/SVG) preview in-app. PDFs &amp; Office docs upload normally.</div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span id="fileBadge" class="badge bg-secondary d-none"></span>
+                            <label class="btn btn-sm btn-outline-secondary mb-0" for="filesInput">
+                                <i class="fa fa-folder-open me-1"></i> Choose Files
+                            </label>
+                            <input id="filesInput" type="file" name="files" class="d-none" multiple
+                                   accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" />
+                            <button id="btnUpload" class="btn theme-button btn-sm" type="submit" disabled>
+                                <i class="fa fa-upload me-1"></i> Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Documents table -->
+<div class="table-responsive">
+    <table id="docsTable" class="table table-striped table-hover table-sm w-100">
+        <thead>
+            <tr>
+                <th>File</th>
+                <th>Uploaded</th>
+                <th>Uploaded By</th>
+                <th class="actions-col" style="text-align:center;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var d in Model ?? Enumerable.Empty<MillenniumWebFixed.Models.ProjectDocument>())
+            {
+                <tr>
+                    <td>@d.OriginalFileName</td>
+                    <td data-order="@d.UploadedAt.ToString("yyyy-MM-ddTHH:mm:ss")">
+                        @d.UploadedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")
+                    </td>
+                    <td>@d.UploadedBy</td>
+                    @{
+                        var isImg = IsImage(d.OriginalFileName ?? d.StoredPath);
+                        var url = ToUrl(d.StoredPath);
+                        var canPreview = isImg && !string.IsNullOrEmpty(url);
+                    }
+                    <td class="actions actions-col">
+                        @* Preview: enabled for images, disabled otherwise *@
+                        @if (canPreview)
+                        {
+                            <button type="button"
+                                    class="btn btn-outline-primary btn-xxs preview-btn me-1"
+                                    data-img-url="@url"
+                                    data-title="@d.OriginalFileName">
+                                <i class="fa fa-eye"></i> Preview
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button"
+                                    class="btn btn-outline-primary btn-xxs me-1 disabled pe-auto"
+                                    disabled aria-disabled="true" tabindex="-1" title="Preview available for images only">
+                                <i class="fa fa-eye"></i> Preview
+                            </button>
+                        }
+
+                        <a class="btn btn-outline-secondary btn-xxs me-1"
+                           href="@Url.Action("DownloadDocument","Projects", new { id = d.Id })">
+                            <i class="fa fa-download"></i> Download
+                        </a>
+
+                        <button type="button"
+                                class="btn btn-outline-danger btn-xxs doc-delete-btn"
+                                data-doc-id="@d.Id"
+                                data-file-name="@d.OriginalFileName">
+                            <i class="fa fa-trash"></i> Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@* Hidden delete form *@
+@using (Html.BeginForm("DeleteDocument", "Projects", FormMethod.Post, new { id = "docDeleteForm" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.Hidden("id", projectId)
+    @Html.Hidden("docId", "")
+    @Html.Hidden("activeTab", "general") @* NEW: defaults to general if nothing set *@
+}
+
+<!-- Full-screen image preview modal -->
+<div class="modal fade" id="imgPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content d-flex flex-column">
+            <div class="modal-header py-2">
+                <h5 class="modal-title" id="imgPreviewTitle">Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 bg-dark">
+                <img id="imgPreview" class="w-100 h-100 d-block" style="object-fit:contain;" alt="">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content confirm-delete-modal shadow border rounded-3">
+            <div class="modal-header bg-danger text-white py-2 px-3">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <span id="deleteModalMessage">Are you sure you want to delete this item?</span>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">No</button>
+                <button id="confirmDeleteBtn" class="btn btn-danger">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        // ---------- Upload UI (vanilla) ----------
+        var dz = document.getElementById('dropZone');
+        var input = document.getElementById('filesInput');
+        var badge = document.getElementById('fileBadge');
+        var btn = document.getElementById('btnUpload');
+
+        function updateUI() {
+            var n = input && input.files ? input.files.length : 0;
+            if (n > 0) {
+                badge.textContent = n + ' selected';
+                badge.classList.remove('d-none');
+                btn.disabled = false;
+            } else {
+                badge.classList.add('d-none');
+                btn.disabled = true;
+            }
+        }
+
+        if (dz) {
+            dz.addEventListener('click', function (e) { if (e.target === dz) input && input.click(); });
+            ['dragenter', 'dragover'].forEach(function (evt) {
+                dz.addEventListener(evt, function (e) { e.preventDefault(); e.stopPropagation(); dz.classList.add('bg-light'); });
+            });
+            ['dragleave', 'drop'].forEach(function (evt) {
+                dz.addEventListener(evt, function (e) { e.preventDefault(); e.stopPropagation(); dz.classList.remove('bg-light'); });
+            });
+            dz.addEventListener('drop', function (e) {
+                var files = e.dataTransfer && e.dataTransfer.files;
+                if (files && files.length) {
+                    var dt = new DataTransfer();
+                    Array.prototype.forEach.call(files, function (f) { dt.items.add(f); });
+                    input.files = dt.files;
+                    updateUI();
+                }
+            });
+        }
+        input && input.addEventListener('change', updateUI);
+        var uploadForm = document.querySelector('form[data-upload-doc="1"]');
+        if (uploadForm) uploadForm.addEventListener('submit', function () { if (typeof showSpinner === 'function') showSpinner('Uploading…'); });
+        updateUI();
+
+        // ---------- Preview (vanilla) ----------
+        document.addEventListener('click', function (e) {
+            var btnPrev = e.target.closest('#docsTable .preview-btn');
+            if (!btnPrev) return;
+            e.preventDefault();
+            var url = btnPrev.getAttribute('data-img-url') || '';
+            var title = btnPrev.getAttribute('data-title') || 'Preview';
+            if (!url) return;
+            var img = document.getElementById('imgPreview');
+            var titleEl = document.getElementById('imgPreviewTitle');
+            var modalEl = document.getElementById('imgPreviewModal');
+            if (img) img.src = url;
+            if (titleEl) titleEl.textContent = title;
+            if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        });
+        var modal = document.getElementById('imgPreviewModal');
+        if (modal) modal.addEventListener('hidden.bs.modal', function () { var img = document.getElementById('imgPreview'); if (img) img.src = ''; });
+    })();
+
+    (function () {
+        // ---- Delete via modal (no jQuery) ----
+        var modalEl = document.getElementById('confirmDeleteModal');
+        var msgEl = document.getElementById('deleteModalMessage');
+        var okBtn = document.getElementById('confirmDeleteBtn');
+        var form = document.getElementById('docDeleteForm');
+        var docIdInput = form ? form.querySelector('input[name="docId"]') : null;
+
+        var pendingDocId = null;
+        var pendingName = '';
+
+        // open modal on delete button click
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('#docsTable .doc-delete-btn');
+            if (!btn) return;
+
+            e.preventDefault();
+            pendingDocId = btn.getAttribute('data-doc-id');
+            pendingName = btn.getAttribute('data-file-name') || 'this file';
+
+            if (msgEl) msgEl.textContent = 'Delete "' + pendingName + '"? This cannot be undone.';
+            okBtn && (okBtn.disabled = false);
+
+            var m = bootstrap.Modal.getOrCreateInstance(modalEl);
+            m.show();
+        });
+
+        // confirm delete -> submit hidden form
+        okBtn && okBtn.addEventListener('click', function () {
+            if (!pendingDocId || !form || !docIdInput) return;
+
+            okBtn.disabled = true;
+            docIdInput.value = pendingDocId;
+
+            // NEW: grab active tab id
+            const activeTabEl = document.querySelector('.nav-tabs .nav-link.active');
+            if (activeTabEl) {
+                document.getElementById('activeTab').value =
+                    activeTabEl.getAttribute('data-bs-target').substring(1); // e.g. "files"
+            }
+
+            if (typeof showSpinner === 'function') showSpinner('Deleting…');
+            bootstrap.Modal.getInstance(modalEl)?.hide();
+            form.submit();
+        });
+
+
+        // reset when closed
+        modalEl?.addEventListener('hidden.bs.modal', function () {
+            pendingDocId = null;
+            pendingName = '';
+            okBtn && (okBtn.disabled = false);
+        });
+    })();
+</script>
+

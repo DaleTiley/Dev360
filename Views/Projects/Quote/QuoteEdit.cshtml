@@ -1,0 +1,1306 @@
+﻿@model MillenniumWebFixed.ViewModels.ProjectQuoteCreateVm
+@using System.Globalization
+
+@{
+    ViewBag.Title = "Edit Quote";
+    var projectId = Model?.ProjectId ?? 0;
+    var quoteId = Model?.QuoteId ?? 0;
+    var status = (Model?.Status ?? "Draft");
+    bool isDraft = status.Equals("Draft", StringComparison.OrdinalIgnoreCase);
+
+    bool canCreatePdf = quoteId > 0 && !isDraft;
+    bool canSubmitForApproval = quoteId > 0 && isDraft;
+    var isApprover = User.IsInRole("QuoteApprover")
+                     || string.Equals(User.GetUserLevel(), "Admin", StringComparison.OrdinalIgnoreCase); // optional
+
+}
+
+<style>
+    .group-header-total {
+        font-weight: 500; /* medium */
+        color: #e2e1e1; /* softer than pure black */
+    }
+
+    .bg-secondary-subtle {
+        background-color: #f8f9fa !important;
+        padding: 9px !important;
+    }
+
+    #quoteLinesTable tbody tr.dtrg-group.dtrg-end:has(> th:empty),
+    #quoteLinesTable tbody tr.dtrg-group.dtrg-end:has(> td:empty) {
+        display: none !important;
+    }
+
+    /* Footer looks like header + force right alignment */
+    #quoteLinesTable tfoot th,
+    #quoteLinesTable tfoot td {
+        background-color: #223b60; /* or just use .table-dark */
+        color: #fff;
+        border-color: #1a2d4a;
+        font-weight: 600;
+        text-align: right !important; /* <- the fix */
+    }
+
+    /* compact table */
+    #quoteLinesTable.dataTable thead th,
+    #quoteLinesTable.dataTable tbody td {
+        padding: .35rem .5rem !important;
+        font-size: .85rem !important;
+        line-height: 1.25;
+        vertical-align: top;
+    }
+
+    .badge {
+        font-size: .70rem;
+        padding: .15rem .35rem;
+    }
+
+    /* notes sub-row */
+    tr.group-notes > td {
+        background: #f7f8fa !important;
+        border-top: 0 !important;
+        color: #495057;
+    }
+
+    /* center helpers */
+    #quoteLinesTable td.text-center, #quoteLinesTable th.text-center {
+        text-align: center !important;
+    }
+
+    /* clickable RowGroup headers */
+    #quoteLinesTable tbody tr.dtrg-group.dtrg-start {
+        cursor: pointer;
+    }
+
+        #quoteLinesTable tbody tr.dtrg-group.dtrg-start > th,
+        #quoteLinesTable tbody tr.dtrg-group.dtrg-start > td {
+            position: relative;
+            padding-left: 2rem;
+            background-color: #2f4866; /* <<< your brand navy */
+            color: #fff;
+            font-weight: 700;
+            border-color: #243854;
+        }
+
+            /* caret indicator (open/closed) */
+            #quoteLinesTable tbody tr.dtrg-group.dtrg-start > th::before,
+            #quoteLinesTable tbody tr.dtrg-group.dtrg-start > td::before {
+                content: "▾";
+                position: absolute;
+                left: .75rem;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: .9rem;
+                line-height: 1;
+                opacity: .8;
+            }
+
+        #quoteLinesTable tbody tr.dtrg-group.dtrg-start.collapsed > th::before,
+        #quoteLinesTable tbody tr.dtrg-group.dtrg-start.collapsed > td::before {
+            content: "▸";
+        }
+
+    /* keep the bullets indented under header nicely */
+    #quoteLinesTable tbody tr.group-notes td {
+        padding-left: 2.25rem;
+    }
+    /* Keep dark theme look even when disabled */
+    .btn.theme-button:disabled,
+    .btn.theme-button[disabled] {
+        background-color: #0c2840 !important;
+        color: #fff !important;
+        opacity: .55; /* slight dim so it still *looks* disabled */
+        cursor: not-allowed;
+    }
+
+        .btn.theme-button:disabled i,
+        .btn.theme-button[disabled] i {
+            opacity: .9;
+        }
+
+    /* Compact action bar */
+    .header-actions .btn {
+        padding: .5rem .55rem; /* was ~.5rem .75rem */
+        font-size: .85rem; /* smaller text */
+        line-height: 1.1;
+        border-radius: .35rem;
+    }
+
+        .header-actions .btn i {
+            font-size: .9em; /* smaller icon */
+            margin-right: .4rem;
+        }
+
+    .header-actions .vr {
+        height: 1.5rem; /* shorter divider */
+        margin: 0 .25rem;
+        opacity: .25;
+    }
+
+    /* Keep dark theme look even when disabled (still compact) */
+    .header-actions .btn.theme-button:disabled,
+    .header-actions .btn.theme-button[disabled] {
+        background-color: #0c2840 !important;
+        color: #fff !important;
+        opacity: .55;
+        cursor: not-allowed;
+    }
+
+    /* Child notes list */
+    .notes-list {
+        list-style: disc;
+        padding-left: 1.25rem;
+        margin-bottom: .25rem;
+    }
+
+        .notes-list li {
+            padding: .125rem .5rem;
+        }
+
+            /* Stripe alternate items */
+            .notes-list li:nth-child(even) {
+                background-color: var(--bs-table-striped-bg, rgba(0,0,0,.03));
+            }
+
+        /* Keep qty aligned and neat */
+        .notes-list .qty {
+            min-width: 120px;
+            text-align: right;
+            color: #6c757d;
+        }
+
+        .notes-list li::marker {
+            color: #6c757d; /* muted grey */
+            font-size: 0.6rem;
+        }
+</style>
+
+<div class="page-header d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">Edit Quote <span class="text-muted">[@status]</span></h5>
+
+    <div class="d-flex gap-1 header-actions">
+        <!-- Import -->
+        <button class="btn btn-sm theme-button"
+                type="button"
+                data-bs-toggle="modal"
+                data-bs-target="#importQuoteFilesModal"
+                title="Import Quote Files"
+                @(quoteId > 0 ? null : "disabled")>
+            <i class="fa-solid fa-file-import me-1" aria-hidden="true"></i>
+            Import Quote Files
+        </button>
+
+        <!-- Clone -->
+        <button id="btnCloneQuote"
+                class="btn btn-sm theme-button"
+                type="button"
+                data-bs-toggle="modal"
+                data-bs-target="#cloneQuoteModal"
+                title="Clone Quote"
+                @(quoteId > 0 ? null : "disabled")>
+            <i class="fa-regular fa-copy me-1" aria-hidden="true"></i>
+            Clone Quote
+        </button>
+
+        <!-- Create Revision -->
+        <button class="btn btn-sm theme-button"
+                type="button"
+                data-bs-toggle="modal"
+                data-bs-target="#revConfirmModal"
+                title="Create Revision"
+                @(quoteId > 0 ? null : "disabled")>
+            <i class="fa-solid fa-code-branch me-1" aria-hidden="true"></i>
+            Create Revision
+        </button>
+
+        <div class="vr mx-1"></div>
+
+        <!-- Submit for Approval (enabled while Draft) -->
+        @* Submit for approval: only in Draft, and NOT shown to approvers if you want *@
+        @if (string.Equals(status, "Draft", StringComparison.OrdinalIgnoreCase))
+        {
+            <button id="btnSubmitForApproval"
+                    type="button"
+                    class="btn btn-sm theme-button"
+                    title="Submit for Approval"
+                    @(canSubmitForApproval ? null : "disabled")>
+                <i class="fa-solid fa-paper-plane me-1"></i> Submit for Approval
+            </button>
+        }
+
+        @* Approval decision: visible to approvers when quote is pending *@
+        @if (isApprover && string.Equals(status, "PendingApproval", StringComparison.OrdinalIgnoreCase))
+        {
+            <button id="btnApprovalDecision" type="button" class="btn btn-sm btn-success">
+                <i class="fa-solid fa-gavel me-1"></i> Approval Decision
+            </button>
+        }
+
+        @* Create PDF: enabled once approved *@
+        <button id="btnCreatePdf" type="button" class="btn btn-sm btn-dark" @(status == "Approved" ? null : "disabled")>
+            <i class="fa-solid fa-file-pdf me-1"></i> Create Quote PDF
+        </button>
+
+        <div class="vr mx-1"></div>
+
+        <!-- Create Order (still disabled for now) -->
+        <button class="btn btn-sm btn-outline-secondary" type="button" title="Create Order" disabled>
+            <i class="fa-solid fa-bag-shopping me-1" aria-hidden="true"></i>
+            Create Order
+        </button>
+
+        <!-- Submit Credit Order (still disabled for now) -->
+        <button class="btn btn-sm btn-outline-secondary" type="button" title="Submit Credit Order" disabled>
+            <i class="fa-solid fa-credit-card me-1" aria-hidden="true"></i>
+            Submit Credit Order
+        </button>
+    </div>
+</div>
+
+@if (quoteId > 0)
+{
+    <div class="modal fade" id="revConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Revision</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                @using (Html.BeginForm("CreateRevision", "ProjectQuotes", FormMethod.Post, new { id = "revConfirmForm" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.Hidden("id", quoteId)
+
+                    <div class="modal-body">
+                        <div class="alert alert-info small mb-0">
+                            <strong>What will happen:</strong>
+                            <ul class="mb-0 ps-3">
+                                <li>A <em>new</em> quote will be created; the current one stays unchanged.</li>
+                                <li><strong>Quote No</strong> prefix stays the same; the revision suffix advances (e.g., A→B).</li>
+                                <li>All fields are copied to the new quote. Status starts as <strong>Draft</strong>.</li>
+                                <li>You’ll be redirected to the new revision.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button id="btnConfirmRevision" type="submit" class="btn theme-button btn-sm">
+                            <i class="fa-solid fa-code-branch me-1"></i> Create Revision
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@using (Html.BeginForm("Edit", "ProjectQuotes", FormMethod.Post,
+    new { @class = "compact-form needs-validation", novalidate = "novalidate" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+    @Html.HiddenFor(m => m.ProjectId)
+    @Html.HiddenFor(m => m.QuoteId) <!-- important for edit -->
+    @Html.HiddenFor(m => m.QuoteNumber) <!-- preserves number on save -->
+
+    @Html.Partial("~/Views/Projects/Quote/_QuoteForm.cshtml", Model)
+}
+
+<!-- === Imported Lines summary + table === -->
+<div class="d-flex flex-wrap gap-2 mb-2 mt-2">
+    <span class="badge bg-secondary-subtle text-secondary border">Lines: <span id="ql-count">0</span></span>
+    <span class="badge bg-secondary-subtle text-secondary border">Subtotal (ex VAT): <span id="ql-subtotal">R 0.00</span></span>
+    <span class="badge bg-secondary-subtle text-secondary border">VAT: <span id="ql-vat">R 0.00</span></span>
+    <span class="badge bg-secondary-subtle text-secondary border">Total (inc): <span id="ql-total">R 0.00</span></span>
+
+    <button id="btnRefreshLines" type="button" class="btn btn-sm btn-outline-dark ms-auto">
+        <i class="fas fa-rotate"></i> Refresh
+    </button>
+    <button id="btnCollapseAll" type="button" class="btn btn-sm btn-outline-dark">
+        <i class="fa-solid fa-compress"></i> Collapse all
+    </button>
+    <button id="btnExpandAll" type="button" class="btn btn-sm btn-outline-dark">
+        <i class="fa-solid fa-expand"></i> Expand all
+    </button>
+</div>
+
+<div class="table-responsive">
+    <table id="quoteLinesTable" class="table table-sm table-striped table-bordered w-100">
+        <thead class="table-dark">
+            <tr>
+                <th>Product ID</th>
+                <th>Product Name</th>
+                <th class="text-center">Qty</th>
+                <th class="text-end">Price / Unit</th>
+                <th class="text-end">Cost / Unit</th>
+                <th class="text-end">VAT</th>         @* rate shown if known, else blank *@
+                <th class="text-center">Overridden</th>
+                <th class="text-end">Line (ex)</th>
+                <th class="text-end">VAT Amt</th>
+                <th class="text-end">Line (inc)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot class="table-dark">
+            <tr>
+                <th colspan="7" class="text-end" id="ql-footer-label">Page Total (inc):</th>
+                <th class="text-end" id="ql-page-ex">R 0.00</th>
+                <th class="text-end" id="ql-page-vat">R 0.00</th>
+                <th class="text-end" id="ql-page-inc">R 0.00</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+<!-- === /Imported Lines summary + table === -->
+
+<!-- Send For Approval Modal -->
+<div class="modal fade" id="approverModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-sm border-0">
+            <div class="modal-header" style="background:#001C2B;color:#fff">
+                <h6 class="modal-title mb-0">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Submit for approval
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body small">
+                <div class="mb-2 text-muted">Choose one or more approvers:</div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:40px;"></th>
+                                <th>Name</th>
+                                <th>Designation</th>
+                                <th>Department</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approverList">
+                            <!-- filled by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="form-text mt-2">
+                    We’ll send each selected approver an email with a link and the quote details.
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button id="btnSendForApproval" class="btn btn-warning btn-sm">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Send for approval
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Decision Modal -->
+<div class="modal fade" id="approvalDecisionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-sm border-0">
+            <div class="modal-header" style="background:#001C2B;color:#fff">
+                <h6 class="modal-title mb-0"><i class="fa-solid fa-gavel me-1"></i> Approval Decision</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body small">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="approvalChoice" id="approveChoice" value="approve" checked>
+                        <label class="form-check-label" for="approveChoice">
+                            <strong>Approve Quote</strong> — confirms pricing, scope and terms. Status will change to <em>Approved</em>.
+                        </label>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="radio" name="approvalChoice" id="rejectChoice" value="reject">
+                        <label class="form-check-label" for="rejectChoice">
+                            <strong>Reject Quote</strong> — requires updates. Status will change to <em>Rejected</em>.
+                        </label>
+                    </div>
+                </div>
+
+                <label for="approvalNotes" class="form-label">Special Notes / Instructions (optional)</label>
+                <textarea id="approvalNotes" class="form-control" rows="4" placeholder="Add any instructions or reasons..."></textarea>
+
+                <div class="form-text mt-2">
+                    Your decision will be logged and the requester will be able to see your notes.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button id="btnSubmitDecision" type="button" class="btn theme-button btn-sm">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Submit Decision
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (quoteId > 0)
+{
+    <div class="modal fade" id="cloneQuoteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content" id="cloneQuoteModalContent">
+                <div class="p-4 text-muted small">Loading…</div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="~/Scripts/project-quotes-edit.js"></script>
+
+    @if (TempData["ToastMessage"] != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                showToast('@TempData["ToastMessage"]', 'success');
+            });
+        </script>
+    }
+
+    @if (TempData["ToastError"] != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                showToast('@TempData["ToastError"]', 'danger');
+            });
+        </script>
+    }
+
+<script>
+        (function () {
+  const quoteId = @Model.QuoteId;
+  const statusNow = '@(Model.Status ?? "Draft")';
+  const isApprover = @(isApprover ? "true" : "false");
+
+  const decisionModalEl = document.getElementById('approvalDecisionModal');
+  const btnDecision = document.getElementById('btnApprovalDecision');
+  const btnSubmitDecision = document.getElementById('btnSubmitDecision');
+  const notesEl = document.getElementById('approvalNotes');
+  const root = document.getElementById('quoteEditFormRoot');
+
+  // Helper: get anti-forgery token
+  function getToken() {
+    const t = document.querySelector('input[name="__RequestVerificationToken"]');
+    return t ? t.value : '';
+  }
+
+  // Lock editing when PendingApproval (any user)
+  function applyReadonlyLock() {
+    if (!root) return;
+    root.classList.add('readonly-lock');
+
+    // Explicitly disable common action buttons except decision button
+    const toDisable = document.querySelectorAll('.btn');
+    toDisable.forEach(b => {
+      if (!b || b.id === 'btnApprovalDecision') b && b.removeAttribute('disabled');
+      else b.setAttribute('disabled','disabled');
+    });
+    // Disable inputs/selects/textareas
+    const inputs = root.querySelectorAll('input, select, textarea, button');
+    inputs.forEach(el => {
+      if (el.id === 'btnApprovalDecision') return;
+      el.setAttribute('disabled','disabled');
+    });
+    // Allow modal controls to function
+    decisionModalEl?.querySelectorAll('input, textarea, select, button').forEach(el => el.removeAttribute('disabled'));
+  }
+
+  if (statusNow.toLowerCase() === 'pendingapproval') {
+    applyReadonlyLock();
+  }
+
+  // Open modal
+  if (btnDecision) {
+    btnDecision.addEventListener('click', () => {
+      const m = bootstrap.Modal.getOrCreateInstance(decisionModalEl);
+      m.show();
+    });
+  }
+
+  // Submit decision
+  if (btnSubmitDecision) {
+    btnSubmitDecision.addEventListener('click', () => {
+      const approve = document.getElementById('approveChoice').checked;
+      const notes = notesEl ? notesEl.value.trim() : '';
+
+      // basic guard
+      if (!isApprover) {
+        showToast?.("Only approvers can submit a decision.", "danger");
+        return;
+      }
+
+      // optional spinner helper if you have one
+      showSpinner?.("Submitting decision...");
+
+      fetch('@Url.Action("TakeApprovalDecision","ProjectQuotes")', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json',
+          'RequestVerificationToken': getToken()
+        },
+        body: JSON.stringify({ quoteId: quoteId, approve: approve, notes: notes })
+      })
+      .then(r => r.json())
+      .then(res => {
+        hideSpinner?.();
+        if (!res || !res.success) {
+          showToast?.(res?.message || "Failed to submit decision.", "danger");
+          return;
+        }
+
+        // Update status text/badge in header (adjust ids to your markup)
+        const statusEl = document.getElementById('quoteStatusText');
+        if (statusEl) statusEl.textContent = res.newStatus;
+
+        // Lock edits in all cases post decision
+        applyReadonlyLock();
+
+        bootstrap.Modal.getOrCreateInstance(decisionModalEl).hide();
+        showToast?.(`Decision recorded: ${res.newStatus}.`, "success");
+      })
+      .catch(() => {
+        hideSpinner?.();
+        showToast?.("Failed to submit decision.", "danger");
+      });
+    });
+  }
+})();
+
+(function(){
+  const quoteId = @Model.QuoteId; // ensure this is available
+
+  const modalEl = document.getElementById('approverModal');
+  const approverList = document.getElementById('approverList');
+  const btnSubmitForApproval = document.getElementById('btnSubmitForApproval');
+  const btnSendForApproval = document.getElementById('btnSendForApproval');
+  const btnApproveQuote = document.getElementById('btnApproveQuote');
+  const bsModal = modalEl ? new bootstrap.Modal(modalEl) : null;
+
+  function getToken(){
+    const el = document.querySelector('input[name="__RequestVerificationToken"]');
+    return el ? el.value : '';
+  }
+
+    function renderApprovers(items) {
+        approverList.innerHTML = items.map(u => `
+    <tr>
+      <td>
+        <input class="form-check-input approver-checkbox" type="checkbox" value="${u.Id}" />
+      </td>
+      <td class="fw-semibold">${escapeHtml(u.Name || '')}</td>
+      <td>${escapeHtml(u.Designation || '')}</td>
+      <td>${escapeHtml(u.Department || '')}</td>
+      <td class="text-muted small">${escapeHtml(u.Email || '')}</td>
+    </tr>
+  `).join('');
+    }
+
+
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m]));
+  }
+
+  // open modal + load list
+  if (btnSubmitForApproval && bsModal){
+    btnSubmitForApproval.addEventListener('click', () => {
+      showSpinner("Loading approvers...");
+      fetch('@Url.Action("GetApprovers", "ProjectQuotes")', { headers: { 'X-Requested-With':'XMLHttpRequest' }})
+        .then(r => r.json())
+        .then(data => { renderApprovers(data || []); bsModal.show(); })
+        .catch(()=> showToast("Failed to load approvers","danger"))
+        .finally(hideSpinner);
+    });
+  }
+
+  // send for approval
+  if (btnSendForApproval){
+ function getToken() {
+    return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+  }
+
+  btnSendForApproval?.addEventListener('click', () => {
+    const ids = Array.from(modalEl.querySelectorAll('.approver-checkbox:checked'))
+                     .map(cb => Number(cb.value))
+                     .filter(Number.isFinite);
+
+    if (ids.length === 0) {
+      showToast("Please select at least one approver.","danger");
+      return;
+    }
+
+    showSpinner("Submitting for approval...");
+
+    const form = new URLSearchParams();
+    form.append('__RequestVerificationToken', getToken());
+    form.append('quoteId', String(quoteId));
+    ids.forEach(id => form.append('approverIds', String(id))); // <-- repeats = binds to int[]
+
+    fetch('@Url.Action("SendForApproval", "ProjectQuotes")', {
+      method: 'POST',
+      headers: {
+        'X-Requested-With':'XMLHttpRequest',
+        'Content-Type':'application/x-www-form-urlencoded'
+      },
+      body: form.toString()
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) {
+        bsModal.hide();
+        showToast("Sent for approval.", "success");
+        setTimeout(() => location.reload(), 800);
+      } else {
+        showToast(res.message || "Failed to send for approval","danger");
+      }
+    })
+    .catch(() => showToast("Failed to send for approval","danger"))
+    .finally(hideSpinner);
+  });
+  }
+
+  // approve button (for approvers)
+  if (btnApproveQuote){
+    btnApproveQuote.addEventListener('click', ()=>{
+      if(!confirm("Approve this quote?")) return;
+      showSpinner("Approving...");
+      fetch('@Url.Action("ApproveQuote", "ProjectQuotes")', {
+        method: 'POST',
+        headers: { 'X-Requested-With':'XMLHttpRequest',
+                   'RequestVerificationToken': getToken(),
+                   'Content-Type':'application/json' },
+        body: JSON.stringify({ quoteId })
+      })
+      .then(r=>r.json())
+      .then(res=>{
+        if(res.success){
+          showToast("Quote approved.","success");
+          setTimeout(()=>location.reload(), 800);
+        } else {
+          showToast(res.message || "Approval failed","danger");
+        }
+      })
+      .catch(()=> showToast("Approval failed","danger"))
+      .finally(hideSpinner);
+    });
+  }
+})();
+
+
+    /* =============================== *
+    * Helpers
+    * =============================== */
+    function toNum(v) {
+    if (typeof v === "number") return v;
+    const s = String(v ?? "")
+    .replace(/\u00A0/g, " ")   // NBSP -> space
+    .replace(/[^\d.,-]/g, "")  // digits, comma, dot, minus
+    .replace(/\s+/g, "")
+    .trim();
+    if (!s) return 0;
+
+    if (s.includes(",") && s.includes(".")) {
+    // "119,789.32" -> remove thousands commas
+    return parseFloat(s.replace(/,/g, "")) || 0;
+    }
+    if (s.includes(",") && !s.includes(".")) {
+    // "119 789,32" or "119,32" -> decimal comma
+    return parseFloat(s.replace(/,/g, ".")) || 0;
+    }
+    return parseFloat(s) || 0;       // "119789.32" / "119"
+    }
+
+    /* =============================== *
+    * Clone Quote modal (AJAX load)
+    * =============================== */
+    (function () {
+    const modal   = document.getElementById('cloneQuoteModal');
+    const content = document.getElementById('cloneQuoteModalContent');
+    if (!modal || !content) return;
+
+    const cloneUrl = '@Url.Action("Clone", "ProjectQuotes", new { id = Model?.QuoteId ?? 0 })';
+
+    modal.addEventListener('show.bs.modal', function () {
+    content.innerHTML = '<div class="p-4 text-muted small">Loading…</div>';
+    fetch(cloneUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, cache: 'no-store' })
+    .then(r => { if (!r.ok) throw new Error(r.status + ' ' + r.statusText); return r.text(); })
+    .then(html => { content.innerHTML = html; })
+    .catch(err => {
+    console.error('Clone modal load failed:', err);
+    content.innerHTML = '<div class="p-4 text-danger small">Failed to load the clone form.</div>';
+    });
+    });
+
+    modal.addEventListener('hidden.bs.modal', function () {
+    content.innerHTML = '';
+    });
+    })();
+
+    /* =============================== *
+    * Quote Lines table + grouping
+    * =============================== */
+    (function () {
+    // -------- Server context --------
+    const quoteId         = @quoteId;
+    const ajaxGetLinesUrl = '@Url.Action("GetQuoteLines", "ProjectQuotes")';
+
+    // -------- Formatting + helpers --------
+    function fmtZAR(n) {
+    return toNum(n).toLocaleString("en-ZA", { style: "currency", currency: "ZAR", minimumFractionDigits: 2 });
+    }
+    function fmtNum(n) {
+    return toNum(n).toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function tidy(s) { return String(s ?? '').replace(/\u00a0/g, ' ').trim(); }
+    function asBool(v) { return v === true || v === 1 || v === '1' || (typeof v === 'string' && /^(true|yes|y)$/i.test(v)); }
+    function esc(s) {
+    return String(s || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));
+    }
+
+    // Bulleted child list: "Desc - Qty" split into left/right
+    function notesListHtml(notesArr) {
+    const items = [];
+    (notesArr || []).forEach(n => {
+    if (!n) return;
+    n.split(/[,;]\s*/).forEach(p => {
+    const t = (p || '').trim();
+    if (t) items.push(t);
+    });
+    });
+    const uniq = Array.from(new Set(items));
+    if (!uniq.length) return '';
+    return `
+    <ul class="notes-list small ms-1">
+        ${uniq.map(x => {
+        const [desc, qty] = (x || '').split(/\s*-\s*/, 2);
+        return `
+        <li class="d-flex justify-content-between">
+            <span class="desc"><i class="fas fa-angle-right text-muted me-1"></i> ${esc(desc || '')}</span>
+            <span class="qty">${esc(qty || '')}</span>
+        </li>`;
+        }).join('')}
+    </ul>`;
+    }
+
+    // VAT: fraction (0.15), percent (15), or per-unit amount
+    function computeVat(qty, pricePerUnit, rawVat) {
+    const q  = toNum(qty);
+    const pu = toNum(pricePerUnit);
+    const v  = toNum(rawVat);
+    const ex = q * pu;
+
+    if (v === 0)          return { amount: 0,            rate: null };
+    if (v > 0 && v <= 1)  return { amount: ex * v,       rate: v };
+    if (v > 1 && v <= 30) return { amount: ex * (v/100), rate: v/100 };
+
+    // per-unit VAT amount
+    const amt  = q * v;
+    const rate = pu > 0 ? (v / pu) : null;
+    return { amount: amt, rate };
+    }
+
+    // Summary pills
+    function recomputeSummary(rows) {
+    let ex = 0, vatAmt = 0, inc = 0;
+    (rows || []).forEach(r => {
+    const qty    = toNum(r.Quantity);
+    const pu     = toNum(r.PricePerUnit);
+    const exLine = qty * pu;
+    const { amount: vatLine } = computeVat(qty, pu, r.Vat);
+    ex     += exLine;
+    vatAmt += vatLine;
+    inc    += exLine + vatLine;
+    });
+    document.getElementById('ql-count').textContent    = (rows || []).length;
+    document.getElementById('ql-subtotal').textContent = fmtZAR(ex);
+    document.getElementById('ql-vat').textContent      = fmtZAR(vatAmt);
+    document.getElementById('ql-total').textContent    = fmtZAR(inc);
+    }
+
+    // -------- Collapsible groups state --------
+    const collapsedGroups = new Set();
+    let collapseOnNextDraw = true;
+
+    function collapseFromHeader($hdr) {
+    $hdr.addClass('collapsed');
+    let $row = $hdr.next();
+    while ($row.length) {
+    if ($row.hasClass('dtrg-group') && $row.hasClass('dtrg-start')) break;
+    $row.hide();
+    $row = $row.next();
+    }
+    }
+    function expandFromHeader($hdr) {
+    $hdr.removeClass('collapsed');
+    let $row = $hdr.next();
+    while ($row.length) {
+    if ($row.hasClass('dtrg-group') && $row.hasClass('dtrg-start')) break;
+    $row.show();
+    $row = $row.next();
+    }
+    }
+
+    // -------- DataTables w/ RowGroup --------
+    function ensureDataTable(enrichedRows) {
+    if (!(window.jQuery && jQuery.fn && jQuery.fn.dataTable)) return false;
+
+    const $ = jQuery;
+    const hasRowGroup = !!($.fn.dataTable.RowGroup);
+    const colCount = document.querySelectorAll('#quoteLinesTable thead th').length;
+
+    if (!window.dtQuoteLines) {
+    window.dtQuoteLines = $('#quoteLinesTable').DataTable({
+    data: enrichedRows || [],
+    responsive: true,
+    paging: false,
+    info: false,
+    searching: false,
+    lengthChange: false,
+    pageLength: 25,
+    order: [],
+    columns: [
+    { data: 'ProductIdExcel', defaultContent: '' },
+    { data: 'ProductName',    defaultContent: '' },
+    { data: 'Quantity',       className: 'text-center', render: d => fmtNum(d) },
+    { data: 'PricePerUnit',   className: 'text-end',    render: d => fmtZAR(d) },
+    { data: 'CostPerUnit',    className: 'text-end',    render: d => fmtZAR(d) },
+    { data: '_VatRate',       className: 'text-end',    render: d => (d != null && !isNaN(d)) ? ((toNum(d)*100).toFixed(2) + '%') : '' },
+    { data: 'PriceOverridden',className: 'text-center', render: d => asBool(d) ? '<span class="badge bg-warning text-dark">Yes</span>' : '' },
+    { data: '_LineEx',        className: 'text-end',    render: d => fmtZAR(d) },
+    { data: '_VatAmt',        className: 'text-end',    render: d => fmtZAR(d) },
+    { data: '_LineInc',       className: 'text-end fw-bold', render: d => fmtZAR(d) }
+    ],
+    footerCallback: function (row, data) {
+    const ex  = data.reduce((a,r)=> a + toNum(r._LineEx), 0);
+    const vat = data.reduce((a,r)=> a + toNum(r._VatAmt), 0);
+    const inc = data.reduce((a,r)=> a + toNum(r._LineInc), 0);
+    document.getElementById('ql-page-ex').textContent  = fmtZAR(ex);
+    document.getElementById('ql-page-vat').textContent = fmtZAR(vat);
+    document.getElementById('ql-page-inc').textContent = fmtZAR(inc);
+    },
+
+    rowGroup: hasRowGroup ? {
+    dataSrc: row => tidy(row.ProductName),
+    startRender: function (rows, group) {
+    if (!group) return false;
+    const totalInc = rows.data().pluck('_LineInc').toArray().reduce((a, v) => a + toNum(v), 0);
+    return `
+    <div class="d-flex justify-content-between group-header-total">
+        <span>${esc(group)}</span>
+        <span>${fmtZAR(totalInc)}</span>
+    </div>`;
+    },
+    endRender: (rows, group) => {
+    if (!group) return false;
+    const listHtml = notesListHtml(rows.data().pluck('LineNotes').toArray());
+    if (!listHtml) return false;
+    return $('<tr class="group-notes" />').append(`<td colspan="${colCount}">${listHtml}</td>`);
+    },
+    emptyDataGroup: ''
+    } : undefined,
+
+    drawCallback: function () {
+    const $t = jQuery('#quoteLinesTable');
+
+    $t.find('tr.dtrg-group.dtrg-start').each(function () {
+    const txt = jQuery(this).text().replace(/\u00a0/g, ' ').trim().toLowerCase();
+    if (txt === '' || txt === 'no group') jQuery(this).remove();
+    });
+
+    setTimeout(function () {
+    $t.find('tr.dtrg-group.dtrg-end').filter(function () {
+    const cell = this.querySelector('th,td');
+    return cell && cell.textContent.replace(/\u00a0/g, ' ').trim() === '';
+    }).remove();
+    }, 0);
+
+    $t.find('tfoot th, tfoot td')
+    .removeClass('text-start text-center dt-center dt-head-center dt-body-center')
+    .addClass('text-end');
+    $t.find('tfoot').addClass('table-dark');
+
+    setTimeout(function () {
+    $t.find('tr.dtrg-group.dtrg-start').each(function () {
+    const key = tidy(jQuery(this).text());
+    if (collapsedGroups.has(key)) collapseFromHeader(jQuery(this));
+    });
+
+    if (collapseOnNextDraw) {
+    const $hdrs = $t.find('tr.dtrg-group.dtrg-start');
+    $hdrs.each(function () {
+    const $hdr = jQuery(this);
+    const key = tidy($hdr.text());
+    collapsedGroups.add(key);
+    collapseFromHeader($hdr);
+    });
+    collapseOnNextDraw = false;
+    }
+
+    $t.off('click.grpToggle', 'tr.dtrg-group.dtrg-start')
+    .on('click.grpToggle', 'tr.dtrg-group.dtrg-start', function () {
+    const $hdr = jQuery(this);
+    const key  = tidy($hdr.text());
+    if (collapsedGroups.has(key)) {
+    collapsedGroups.delete(key);
+    expandFromHeader($hdr);
+    } else {
+    collapsedGroups.add(key);
+    collapseFromHeader($hdr);
+    }
+    });
+    }, 0);
+    }
+    });
+    } else {
+    window.dtQuoteLines.clear().rows.add(enrichedRows || []).draw();
+    }
+    return true;
+    }
+
+    // -------- Plain fallback (no RowGroup) --------
+    function renderPlainTable(enrichedRows) {
+    const tbody = document.querySelector('#quoteLinesTable tbody');
+    if (!tbody) return;
+
+    const colCount = document.querySelectorAll('#quoteLinesTable thead th').length;
+    const groups = {};
+
+    (enrichedRows || []).forEach(r => {
+    const name = tidy(r.ProductName);
+    if (!name) return;
+    const key = (r.ProductIdExcel || '') + '|' + name;
+    (groups[key] ||= { rows: [], notes: [] }).rows.push(r);
+    if (r.LineNotes) groups[key].notes.push(r.LineNotes);
+    });
+
+    let html = '';
+    Object.keys(groups).forEach(k => {
+    const g = groups[k];
+    g.rows.forEach(r => {
+    html += `
+    <tr>
+        <td>${r.ProductIdExcel ?? ''}</td>
+        <td>${r.ProductName ?? ''}</td>
+        <td class="text-center">${fmtNum(r.Quantity)}</td>
+        <td class="text-end">${fmtZAR(r.PricePerUnit)}</td>
+        <td class="text-end">${fmtZAR(r.CostPerUnit)}</td>
+        <td class="text-end">${(r._VatRate!=null&&!isNaN(r._VatRate)) ? (toNum(r._VatRate)*100).toFixed(2)+'%' : ''}</td>
+        <td class="text-center">${asBool(r.PriceOverridden) ? '<span class="badge bg-warning text-dark">Yes</span>' : ''}</td>
+        <td class="text-end">${fmtZAR(r._LineEx)}</td>
+        <td class="text-end">${fmtZAR(r._VatAmt)}</td>
+        <td class="text-end fw-bold">${fmtZAR(r._LineInc)}</td>
+    </tr>`;
+    });
+    const listHtml = notesListHtml(g.notes);
+    if (listHtml) {
+    html += `<tr class="group-notes"><td colspan="${colCount}">${listHtml}</td></tr>`;
+    }
+    });
+
+    tbody.innerHTML = html;
+
+    const ex  = (enrichedRows || []).reduce((a,r)=> a + toNum(r._LineEx), 0);
+    const vat = (enrichedRows || []).reduce((a,r)=> a + toNum(r._VatAmt), 0);
+    const inc = (enrichedRows || []).reduce((a,r)=> a + toNum(r._LineInc), 0);
+    document.getElementById('ql-page-ex').textContent  = fmtZAR(ex);
+    document.getElementById('ql-page-vat').textContent = fmtZAR(vat);
+    document.getElementById('ql-page-inc').textContent = fmtZAR(inc);
+    }
+
+    // -------- Load & render --------
+    function loadLines() {
+    if (!quoteId) return;
+    fetch(ajaxGetLinesUrl + '?id=' + encodeURIComponent(quoteId), {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => { if (!r.ok) throw new Error(r.status + ' ' + r.statusText); return r.json(); })
+    .then(payload => {
+    const rows = (payload && payload.Rows) || [];
+
+    const enriched = rows.map(r => {
+    const qty  = toNum(r.Quantity);
+    const pu   = toNum(r.PricePerUnit);
+    const ex   = qty * pu;
+    const { amount: vAmt, rate } = computeVat(qty, pu, r.Vat);
+    return Object.assign({}, r, {
+    _LineEx: ex,
+    _VatAmt: vAmt,
+    _VatRate: (rate == null ? null : rate),
+    _LineInc: ex + vAmt
+    });
+    });
+
+    const filtered = enriched.filter(r => tidy(r.ProductName).length > 0);
+
+    recomputeSummary(filtered);
+
+    if (!ensureDataTable(filtered)) renderPlainTable(filtered);
+    })
+    .catch(err => {
+    console.error('GetQuoteLines failed', err);
+    document.getElementById('ql-count').textContent = '0';
+    ['ql-subtotal','ql-vat','ql-total'].forEach(id => document.getElementById(id).textContent = fmtZAR(0));
+    if (window.dtQuoteLines) window.dtQuoteLines.clear().draw();
+    });
+    }
+
+    // -------- Buttons: Refresh / Collapse all / Expand all --------
+    const btnRefresh = document.getElementById('btnRefreshLines');
+    if (btnRefresh) btnRefresh.addEventListener('click', function (e) {
+    e.preventDefault();
+    collapseOnNextDraw = true;
+    loadLines();
+    });
+
+    (function wireCollapseExpandAll() {
+    const btnCollapseAll = document.getElementById('btnCollapseAll');
+    const btnExpandAll   = document.getElementById('btnExpandAll');
+    if (!btnCollapseAll && !btnExpandAll) return;
+
+    if (btnCollapseAll) btnCollapseAll.addEventListener('click', function () {
+    const $hdrs = jQuery('#quoteLinesTable tr.dtrg-group.dtrg-start');
+    $hdrs.each(function () {
+    const $hdr = jQuery(this);
+    const key  = tidy($hdr.text());
+    collapsedGroups.add(key);
+    collapseFromHeader($hdr);
+    });
+    });
+    if (btnExpandAll) btnExpandAll.addEventListener('click', function () {
+    const $hdrs = jQuery('#quoteLinesTable tr.dtrg-group.dtrg-start');
+    collapsedGroups.clear();
+    $hdrs.each(function () { expandFromHeader(jQuery(this)); });
+    });
+    })();
+
+    // -------- Initial load --------
+    collapseOnNextDraw = true;
+    if (quoteId > 0) loadLines();
+})();
+
+/* =============================== *
+ * Import Quote Files: validate + filename confirm
+ * =============================== */
+(function () {
+  const form = document.getElementById('frmImportQuoteFiles');
+  if (!form) return;
+
+  const fileInputs = [
+    'input[name="quoteFile"]',
+    'input[name="linesFile"]',
+    'input[name="aggregateFile"]'
+  ];
+
+  function anyFileChosen() {
+    return fileInputs.some(sel => {
+      const el = form.querySelector(sel);
+      return el && el.files && el.files.length > 0;
+    });
+  }
+
+  const fileDefs = [
+    { sel: 'input[name="quoteFile"]',     label: 'Header file',    expect: /^quote\.(xlsx|xlsm)$/i,             hint: 'Quote.xlsx' },
+    { sel: 'input[name="linesFile"]',     label: 'Lines file',     expect: /^quotelines\.(xlsx|xlsm)$/i,        hint: 'QuoteLines.xlsx' },
+    { sel: 'input[name="aggregateFile"]', label: 'Aggregate file', expect: /^quotelineaggregate\.(xlsx|xlsm)$/i, hint: 'QuoteLineAggregate.xlsx' }
+  ];
+  function selectedFilename(input) { return (input?.files?.[0]?.name || '').trim(); }
+  function collectFilenameIssues() {
+    const issues = [];
+    fileDefs.forEach(def => {
+      const el = form.querySelector(def.sel);
+      if (!el || !el.files || !el.files[0]) return;
+      const actual = selectedFilename(el);
+      if (!def.expect.test(actual)) issues.push({ label: def.label, actual, expected: def.hint });
+    });
+    return issues;
+  }
+
+  function ensureWarnModal() {
+    let el = document.getElementById('fileNameWarnModal');
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = 'fileNameWarnModal';
+    el.className = 'modal fade';
+    el.tabIndex = -1;
+    el.innerHTML = `
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header bg-warning-subtle">
+            <h6 class="modal-title">
+                <i class="fa-solid fa-triangle-exclamation me-2 text-warning"></i>
+                Confirm file names
+            </h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <p class="mb-2 small">Some selected files don’t match the recommended names. Are you sure you want to import?</p>
+            <ul id="fnwm-list" class="small mb-0"></ul>
+        </div>
+        <div class="modal-footer">
+            <button id="fnwm-cancel" type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Go back</button>
+            <button id="fnwm-continue" type="button" class="btn btn-warning btn-sm">Import anyway</button>
+        </div>
+    </div>
+</div>`;
+    document.body.appendChild(el);
+    return el;
+  }
+
+  let bypassFilenameWarning = false;
+
+  function blockIfInvalid(e) {
+    // 1) require at least one file
+    if (!anyFileChosen()) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation?.();
+      if (typeof hideSpinner === 'function') { hideSpinner(); setTimeout(hideSpinner,0); requestAnimationFrame(hideSpinner); }
+      // simple inline error
+      let msg = form.querySelector('.import-error');
+      if (!msg) {
+        msg = document.createElement('div');
+        msg.className = 'import-error alert alert-warning small mt-2';
+        msg.innerHTML = '<i class="fa fa-exclamation-circle me-1"></i>Please select at least one file to import.';
+        form.querySelector('.modal-body').prepend(msg);
+      } else {
+        msg.classList.remove('d-none');
+      }
+      fileInputs.forEach(sel => form.querySelector(sel)?.classList.add('is-invalid'));
+      form.querySelector(fileInputs[0])?.focus();
+      return true;
+    }
+    // 2) filename sanity
+    const issues = collectFilenameIssues();
+    if (!issues.length || bypassFilenameWarning) return false;
+
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation?.();
+    if (typeof hideSpinner === 'function') { hideSpinner(); setTimeout(hideSpinner,0); requestAnimationFrame(hideSpinner); }
+
+    const modalEl = ensureWarnModal();
+    const ul = modalEl.querySelector('#fnwm-list');
+    ul.innerHTML = issues.map(i =>
+      `<li><strong>${i.label}</strong>: “${i.actual}” <span class="text-muted">expected like</span> <code>${i.expected}</code></li>`
+    ).join('');
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+
+    const btnContinue = modalEl.querySelector('#fnwm-continue');
+    btnContinue.onclick = function () {
+      bsModal.hide();
+      bypassFilenameWarning = true;
+      form.submit();
+    };
+    return true;
+  }
+
+  // Validate early (capture) to beat any global submit/spinner handlers
+  form.addEventListener('submit', function (e) {
+    if (blockIfInvalid(e)) return;
+  }, true);
+
+  // Clear field error when choosing files
+  fileInputs.forEach(sel => {
+    form.querySelector(sel)?.addEventListener('change', () => {
+      form.querySelector('.import-error')?.classList.add('d-none');
+      fileInputs.forEach(s => form.querySelector(s)?.classList.remove('is-invalid'));
+    });
+  });
+})();
+</script>
+}
+
+<!-- IMPORT FILES MODAL -->
+<div class="modal fade" id="importQuoteFilesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header theme-header">
+                <h6 class="modal-title">Import Quote Files</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            @* Keep the form open across body + footer so the Submit button can live in the footer *@
+            <form id="frmImportQuoteFiles"
+                  method="post"
+                  enctype="multipart/form-data"
+                  action='@Url.Action("ImportQuoteFiles","Import")'>
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="projectId" value="@projectId" />
+                <input type="hidden" name="quoteId" value="@quoteId" />
+
+                <div class="modal-body">
+
+                    <div class="alert alert-info small">
+                        Upload any of the three files below. You can import Lines now and Header/Aggregate later.
+                        <ul class="mb-0">
+                            <li><strong>Header:</strong> <code>Quote.xlsx</code></li>
+                            <li><strong>Aggregate:</strong> <code>QuoteLineAggregate.xlsx</code></li>
+                            <li><strong>Lines:</strong> <code>QuoteLines.xlsx</code></li>
+                        </ul>
+                    </div>
+
+                    @* Because we default to replaceExisting = true, make that clear to the user *@
+                    <div class="alert alert-danger py-2 small mb-3">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                        <strong>Warning:</strong> Existing quote data will be <strong>overridden</strong> for any file(s) you upload now.
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small">Header file (Quote.xlsx)</label>
+                            <input type="file" name="quoteFile" class="form-control form-control-sm" accept=".xlsx,.xlsm">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small">Aggregate file (QuoteLineAggregate.xlsx)</label>
+                            <input type="file" name="aggregateFile" class="form-control form-control-sm" accept=".xlsx,.xlsm">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small">Lines file (QuoteLines.xlsx)</label>
+                            <input type="file" name="linesFile" class="form-control form-control-sm" accept=".xlsx,.xlsm">
+                        </div>
+
+                        @* Keep for future use; currently hidden but checked *@
+                        <div class="col-12 d-none">
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="replaceExisting" name="replaceExisting" value="true" checked>
+                                <label class="form-check-label small" for="replaceExisting">
+                                    Replace existing imported rows for this quote (only for the files you upload now)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer d-flex justify-content-between align-items-center">
+                    <span class="small text-muted">Supported: .xlsx / .xlsm</span>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn theme-button btn-sm">
+                            <span class="btn-text"><i class="fa-solid fa-upload me-1"></i> Import</span>
+                            <span class="btn-busy d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                Importing…
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

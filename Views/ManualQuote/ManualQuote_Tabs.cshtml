@@ -1,0 +1,331 @@
+﻿@model MillenniumWebFixed.ViewModels.ManualQuoteViewModel
+
+@{
+    ViewBag.Title = "Manual Quote";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .nav-tabs .nav-link {
+        background-color: #eaeaea;
+        color: #0d6efd;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+        margin-right: 2px;
+        flex: 1; /* Ensure even tab sizing */
+        text-align: center;
+    }
+
+        .nav-tabs .nav-link:hover {
+            background-color: #dcdcdc;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: white;
+            color: black;
+            border-color: #dee2e6 #dee2e6 white;
+        }
+
+    .quote-qty-input {
+        height: 22px !important;
+        min-height: unset !important;
+        padding: 2px 4px;
+        font-size: 0.75rem;
+        text-align: center;
+    }
+
+    #quoteItemsTable td,
+    #quoteItemsTable th {
+        vertical-align: middle !important;
+    }
+
+    .readonly-grey {
+        background-color: #f0f0f0 !important;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+</style>
+
+<div class="container mt-0">
+    <div class="bg-dark text-white p-2 mb-0 shadow-sm" style="border-radius: 0;">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 id="quoteHeader" class="mb-0">Generate New Manual Quote</h6>
+            <div>
+                <button type="button" class="btn btn-outline-light btn-sm me-2" onclick="fillDummyData()">
+                    Fill Dummy Data
+                </button>
+                <button id="btnPreviewQuote" class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye"></i> Preview Quote
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tracking -->
+    @Html.Partial("_QuoteStageTracker", (string)Model.QuoteStage ?? "Qualify")
+
+    <div class="card bg-light mb-3 border border-dark" id="quoteCostingSummary">
+        <div class="card-header text-dark fw-bold py-2">Quote Costing Summary</div>
+        <div class="card-body p-2">
+            <div class="row text-center small">
+                <div class="col border-end">
+                    <div class="text-muted">Total Cost</div>
+                    <div id="totalCost" class="fw-bold text-primary">R 0.00</div>
+                </div>
+                <div class="col border-end">
+                    <div class="text-muted">Total Selling</div>
+                    <div id="totalSelling" class="fw-bold text-success">R 0.00</div>
+                </div>
+                <div class="col border-end">
+                    <div class="text-muted">Gross Profit</div>
+                    <div id="totalProfit" class="fw-bold text-warning">R 0.00</div>
+                </div>
+                <div class="col">
+                    <div class="text-muted">Margin %</div>
+                    <div id="totalMarkup" class="fw-bold text-danger">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form id="manualQuoteForm" method="post" action="@Url.Action("SaveManualQuote", "ManualQuote")" class="no-spinner">
+        @Html.AntiForgeryToken()
+
+        @Html.Hidden("ReturnToTabs", "true")
+
+        <!-- Nav Tabs -->
+        <ul class="nav nav-tabs nav-fill d-flex" id="quoteTabNav" role="tablist" style="border-bottom: 1px solid #dee2e6;">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="quoteInfo-tab" data-bs-toggle="tab" data-bs-target="#quoteInfo" type="button" role="tab">Quote Info</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="siteDetails-tab" data-bs-toggle="tab" data-bs-target="#siteDetails" type="button" role="tab">Site Details</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="lineItems-tab" data-bs-toggle="tab" data-bs-target="#lineItems" type="button" role="tab">Line Items</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="salesInfo-tab" data-bs-toggle="tab" data-bs-target="#salesInfo" type="button" role="tab">Sales Info</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="designDetails-tab" data-bs-toggle="tab" data-bs-target="#designDetails" type="button" role="tab">Design</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="quoteNotes-tab" data-bs-toggle="tab" data-bs-target="#quoteNotes" type="button" role="tab">Quote Notes</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="salesNotes-tab" data-bs-toggle="tab" data-bs-target="#salesNotes" type="button" role="tab">Sales Notes</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="addresses-tab" data-bs-toggle="tab" data-bs-target="#addresses" type="button" role="tab">Addresses</button>
+            </li>
+            @*<li class="nav-item" role="presentation">
+                    <button class="nav-link" id="images-tab" data-bs-toggle="tab" data-bs-target="#images" type="button" role="tab">Images</button>
+                </li>*@
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content border rounded-bottom p-3 bg-white small shadow-sm" id="quoteTabContent">
+            <div class="tab-pane fade show active" id="quoteInfo" role="tabpanel" aria-labelledby="quoteInfo-tab">
+                @Html.Partial("PartialsTabs/_QuoteInfoTab", Model)
+            </div>
+            <div class="tab-pane fade" id="siteDetails" role="tabpanel" aria-labelledby="siteDetails-tab">
+                @Html.Partial("PartialsTabs/_SiteDetailsTab", Model)
+            </div>
+            <div class="tab-pane fade" id="lineItems" role="tabpanel" aria-labelledby="lineItems-tab">
+                @Html.Partial("PartialsTabs/_LineItemsTab", Model)
+            </div>
+            <div class="tab-pane fade" id="salesInfo" role="tabpanel" aria-labelledby="salesInfo-tab">
+                @Html.Partial("PartialsTabs/_SalesInfoTab", Model)
+            </div>
+            <div class="tab-pane fade" id="designDetails" role="tabpanel" aria-labelledby="designDetails-tab">
+                @Html.Partial("PartialsTabs/_DesignDetailsTab", Model)
+            </div>
+            <div class="tab-pane fade" id="quoteNotes" role="tabpanel" aria-labelledby="quoteNotes-tab">
+                @Html.Partial("PartialsTabs/_QuoteNotesTab", Model)
+            </div>
+            <div class="tab-pane fade" id="salesNotes" role="tabpanel" aria-labelledby="salesNotes-tab">
+                @Html.Partial("PartialsTabs/_SalesNotesTab", Model)
+            </div>
+            <div class="tab-pane fade" id="addresses" role="tabpanel" aria-labelledby="addresses-tab">
+                @Html.Partial("PartialsTabs/_AddressesTab", Model)
+            </div>
+            @*<div class="tab-pane fade" id="images" role="tabpanel" aria-labelledby="images-tab">
+                    @Html.Partial("PartialsTabs/_QuoteImagesTab", Model)
+                </div>*@
+        </div>
+
+        <div class="card mt-3 shadow-sm border-0">
+            <div class="card-body py-2">
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-sm theme-button">
+                        Save Quote
+                    </button>
+
+                    @if (Model.Id > 0)
+                    {
+                        <a href="@Url.Action("ManageImages", "Image", new { quoteId = Model.Id })"
+                           class="btn btn-sm theme-button position-relative"
+                           id="btnQuoteImages">
+                            Quote Images
+                            <span class="badge bg-white text-dark border ms-2"
+                                  style="font-size: 0.75rem; vertical-align: middle; top: 0 !important; font-weight: normal !important;">
+                                @Model.QuoteImageCount Image(s) Uploaded
+                            </span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Quantity Modal -->
+    <div class="modal fade" id="quantityModal" tabindex="-1" aria-labelledby="quantityModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header py-2 bg-dark text-white">
+                    <h6 class="modal-title fw-semibold small" id="quantityModalLabel">Add Item to Quote</h6>
+                    <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                    <div class="modal-body small">
+                        <div id="quantityItemName" class="mb-3" style="font-weight:bold;">Item name will go here</div>
+                        <div class="mb-3 text-muted">
+                            <div><strong>Code:</strong> <span id="quantityItemCode">---</span></div>
+                            <div><strong>Type:</strong> <span id="quantityItemType">---</span></div>
+                            <div><strong>UOM:</strong> <span id="quantityItemUOM">---</span></div>
+                        </div>
+
+                        <div id="zeroCostWarning" class="alert alert-danger fw-bold fs-8 p-3 mb-3 shadow border border-danger d-none">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                            This item has <u>no cost price</u> defined. Please confirm before quoting.
+                        </div>
+
+                        <input type="number"
+                               id="quantityInput"
+                               name="quantity"
+                               class="form-control form-control-sm"
+                               placeholder="Enter quantity"
+                               min="1"
+                               required />
+                        <div class="invalid-feedback">Please enter a quantity of at least 1.</div>
+                    </div>
+
+                    <div class="modal-footer py-2 border-top">
+                        <button type="button" class="btn btn-sm btn-secondary px-3" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-sm theme-button px-3">Add</button>
+                    </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Modal -->
+    <div class="modal fade" id="validationModal" tabindex="-1" aria-labelledby="validationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header bg-danger text-white py-2">
+                    <h6 class="modal-title" id="validationModalLabel">Required Fields Missing</h6>
+                    <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body small">
+                    <ul id="missingFieldsList" class="mb-0"></ul>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview PDF -->
+    <div class="modal fade" id="quotePreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <div class="container-fluid d-flex justify-content-between align-items-center p-0">
+                        <h5 class="modal-title mb-0">Quote Preview</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-success btn-sm" onclick="generateQuote()">Generate Quote</button>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe id="quotePreviewIframe" src="" style="width:100%; height:90vh;" frameborder="0"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Notification Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header bg-dark text-white" style="padding-top: .5rem; padding-bottom: .5rem;">
+                    <h6 class="modal-title" id="successModalLabel">Success</h6>
+                    <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body small" id="successModalBody">
+                    <!-- Message inserted via JS -->
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    @Html.Partial("_CustomerSearchModal", Model.Customers)
+    @Html.Partial("_ContactSearchModal", Model.Contacts)
+    @Html.Partial("_EnquirySearchModal", Model.Enquiries)
+
+    @section Scripts {
+    @Html.Partial("PartialsTabs/_ManualQuoteScripts", Model)
+
+<script>
+    document.getElementById('btnQuoteImages')?.addEventListener('click', function () {
+        // Show your spinner (replace with your actual spinner logic)
+        showSpinner('Loading Quote Images...');
+
+        // Optional: disable button to prevent double clicks
+        this.classList.add('disabled');
+    });
+
+    // Spinner on image form submit (Upload & Delete)
+    document.querySelectorAll('form[action*="DeleteImage"], form[action*="UploadImages"]').forEach(form => {
+        form.addEventListener('submit', function () {
+            const modal = bootstrap.Modal.getInstance(form.closest('.modal'));
+            if (modal) modal.hide();
+            showSpinner("Please wait...");
+        });
+    });
+
+    // Image thumbnail click = jump to carousel slide
+    document.querySelectorAll('[data-bs-target="#carouselModal"]').forEach((img, idx) => {
+        img.addEventListener('click', () => {
+            const carousel = document.getElementById('carouselIndicators');
+            const bsCarousel = bootstrap.Carousel.getInstance(carousel) || new bootstrap.Carousel(carousel);
+            bsCarousel.to(idx);
+        });
+    });
+
+    // Optional toast feedback for uploads
+    @if (TempData["Message"] != null)
+    {
+        <text>showToast(@Html.Raw(Json.Encode(TempData["Message"])), 'success');</text>
+    }
+    else if (TempData["Error"] != null)
+    {
+        <text>showToast(@Html.Raw(Json.Encode(TempData["Error"])), 'danger');</text>
+    }
+
+    $(document).ready(function () {
+        const lineItemCount = @(Model.LineItems != null ? Model.LineItems.Count : 0);
+        $('#lineItems-tab').text(`Line Items (${lineItemCount})`);
+    });
+
+
+</script>
+    }

@@ -1,0 +1,101 @@
+﻿@model IEnumerable<MillenniumWebFixed.Models.Quote>
+@{
+    ViewBag.Title = "Quotes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    #quoteTable td,
+    #quoteTable th {
+        padding: 4px 8px !important;
+        vertical-align: middle;
+    }
+</style>
+
+<div class="container mt-3">
+    <h4>Quotes History</h4>
+
+    <div class="table-responsive small">
+        <table id="quoteTable" class="table table-bordered table-sm table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Quote Ref</th>
+                    <th style="text-align:center;width:80px;">Project ID</th>
+                    <th style="text-align:center;width:50px;">Versions</th>
+                    <th>Created By</th>
+                    <th>Created At</th>
+                    <th style="text-align:center;width:200px;">Generated PDF</th>
+                    <th style="text-align:center;width:100px;">Electronic</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var quote in Model)
+                {
+                    <tr>
+                        <td>@quote.QuoteRef</td>
+                        <td style="text-align:center;">@quote.ProjectId</td>
+                        <td style="text-align:center;">@(quote.Versions?.FirstOrDefault()?.VersionNumber ?? 0)</td>
+                        <td>@quote.CreatedBy</td>
+                        <td>@quote.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td style="text-align:center;">
+                            @if (!string.IsNullOrWhiteSpace(quote.QuotePath))
+                            {
+                                <a href="@Url.Content(quote.QuotePath)" target="_blank" class="btn btn-sm theme-button">
+                                    <i class="fas fa-download fa-sm"></i> Download
+                                </a>
+                                <button type="button" class="btn btn-sm theme-button ms-1" data-bs-toggle="modal" data-bs-target="#previewModal" onclick="showPreview('@Url.Content(quote.QuotePath)')">
+                                    <i class="fas fa-file-pdf fa-sm"></i> Preview
+                                </button>
+                            }
+                            else
+                            {
+                                <i class="fas fa-times-circle text-danger opacity-75"></i> <span class="text-danger opacity-75">Not generated</span>
+                            }
+                        </td>
+                        <td style="text-align:center;">
+                            <a class="btn btn-sm theme-button" href="@Url.Action("Details", "Quote", new { id = quote.Id })">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Preview Modal-->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #001C2B; color: white;">
+                <h5 class="modal-title" id="previewModalLabel">Quote Preview</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="pdfViewer" src="" width="100%" height="100%" style="border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showPreview(pdfPath) {
+            const viewer = document.getElementById('pdfViewer');
+            viewer.src = pdfPath + '#sidebar=1';
+        }
+
+        $(document).ready(function () {
+            $('#quoteTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                lengthMenu: [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"]
+                ],
+                order: [[0, 'asc']]
+            });
+        });
+    </script>
+}

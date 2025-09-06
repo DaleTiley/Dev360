@@ -1,0 +1,136 @@
+﻿@model IEnumerable<MillenniumWebFixed.Controllers.ProjectAuditListItem>
+
+<style>
+    /* Compact Audit table */
+    #auditTable {
+        font-size: .82rem;
+        line-height: 1.2;
+    }
+
+        #auditTable th, #auditTable td {
+            padding: .25rem .5rem;
+            vertical-align: top;
+        }
+
+            #auditTable td.when, #auditTable td.user {
+                white-space: nowrap;
+            }
+
+            #auditTable td.desc {
+                word-break: break-word;
+            }
+
+        #auditTable .audit-list {
+            margin: 0;
+            padding-left: 1rem;
+        }
+
+            #auditTable .audit-list li {
+                margin: .1rem 0;
+            }
+
+        /* Theme header */
+        #auditTable thead th {
+            background: #0c2840;
+            color: #fff;
+            border-color: rgba(255,255,255,.15);
+        }
+
+        /* Area column centered + equal-width badge */
+        #auditTable td.area-col {
+            text-align: center;
+        }
+
+    .area-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 110px;
+        padding: .25rem .5rem;
+        font-size: .72rem;
+        font-weight: 600;
+        border-radius: .5rem;
+    }
+
+    /* Badge colors (assigned via JS classes) */
+    .area-attachments {
+        background: #e08b44;
+        color: #fff;
+    }
+    /* gray */
+    .area-quote {
+        background: #0d6efd;
+        color: #fff;
+    }
+    /* blue */
+    .area-order {
+        background: #fd7e14;
+        color: #fff;
+    }
+    /* orange */
+    .area-sales {
+        background: #20c997;
+        color: #0b3d2e;
+    }
+    /* teal */
+    .area-tender {
+        background: #6f42c1;
+        color: #fff;
+    }
+    /* purple */
+    .area-general {
+        background: #20c997;
+        color: #212529;
+    }
+    /* light gray */
+
+    /* DataTables layout: keep search on far right; Excel button to its left */
+    .dataTables_wrapper .dt-buttons .btn {
+        margin-left: .25rem;
+    }
+</style>
+
+<div class="table-responsive">
+    <table id="auditTable" class="table table-sm table-striped table-bordered align-middle w-100">
+        <thead>
+            <tr>
+                <th class="when" style="width:160px;">When (UTC)</th>
+                <th style="width:120px;text-align:center;">Area</th>
+                <th class="desc">Description</th>
+                <th class="user" style="width:220px;">User</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model == null || !Model.Any())
+            {
+                <tr><td colspan="4" class="text-muted">No audit entries yet.</td></tr>
+            }
+            else
+            {
+                foreach (var a in Model)
+                {
+                    <tr>
+                        <td class="when">@a.ChangedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="area-col">
+                            <span class="area-badge" data-area="@a.Area">@a.Area</span>
+                        </td>
+                        <td class="desc">
+                            <ul class="audit-list">
+                                @foreach (var line in (a.Description ?? "")
+                                     .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <li>@line.Trim()</li>
+}
+                            </ul>
+                        </td>
+                        <td class="user">@a.ChangedByName <span class="text-muted">(#@a.ChangedByUserId)</span></td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+
+
+

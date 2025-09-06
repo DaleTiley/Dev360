@@ -1,0 +1,28 @@
+﻿@model MillenniumWebFixed.ViewModels.ManualQuoteViewModel
+
+<div class="row mb-1">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.SiteName, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.SiteName, new { @class = "form-control form-control-sm required-field" })
+    </div>
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.StandNumber, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.StandNumber, new { @class = "form-control form-control-sm required-field" })
+    </div>
+</div>
+<div class="row mb-1">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.ProjectName, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.ProjectName, new { @class = "form-control form-control-sm required-field", @readonly = "readonly" })
+    </div>
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.UnitBlockNumber, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.UnitBlockNumber, new { @class = "form-control form-control-sm required-field" })
+    </div>
+</div>
+<div class="row mb-1">
+    <div class="col-md-6">
+        @Html.LabelFor(m => m.UnitBlockType, new { @class = "form-label small" })
+        @Html.TextBoxFor(m => m.UnitBlockType, new { @class = "form-control form-control-sm required-field" })
+    </div>
+</div>

@@ -1,0 +1,402 @@
+﻿@model MillenniumWebFixed.Models.Project
+@using System.Collections.Generic
+@{
+    ViewBag.Title = "Project Details";
+    var projectId = Model.Id;
+
+    // Build a clean one-line address to avoid Razor parse issues
+    var addrParts = new List<string>();
+    if (!string.IsNullOrWhiteSpace(Model.SiteAddress1)) { addrParts.Add(Model.SiteAddress1); }
+    if (!string.IsNullOrWhiteSpace(Model.SiteAddress2)) { addrParts.Add(Model.SiteAddress2); }
+    if (!string.IsNullOrWhiteSpace(Model.SiteCity)) { addrParts.Add(Model.SiteCity); }
+    if (!string.IsNullOrWhiteSpace(Model.SiteProvince)) { addrParts.Add(Model.SiteProvince); }
+    if (!string.IsNullOrWhiteSpace(Model.SitePostcode)) { addrParts.Add(Model.SitePostcode); }
+    var addressLine = string.Join(", ", addrParts);
+}
+<style>
+    :root {
+        --brand: #001C2B;
+    }
+
+    .card-elev {
+        border: 1px solid #d9e1e7;
+        box-shadow: 0 1px 2px rgba(0,0,0,.04);
+    }
+
+    .section-title {
+        font-weight: 600;
+        color: #334;
+    }
+
+    .detail-header {
+        background: linear-gradient(90deg, var(--brand), #083855);
+        color: #fff;
+        border-radius: .5rem .5rem 0 0;
+        padding: .75rem 1rem;
+    }
+
+    .badge-code {
+        background: #fff;
+        color: var(--brand);
+        font-weight: 700;
+    }
+
+    .kv {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        gap: .25rem 1rem;
+        padding: .5rem 0;
+        border-bottom: 1px dashed #e6edf3;
+    }
+
+        .kv:last-child {
+            border-bottom: 0;
+        }
+
+        .kv .k {
+            color: #5a6b7b;
+            font-weight: 600;
+        }
+
+        .kv .v {
+            color: #1f2d3a;
+        }
+
+        .kv i {
+            width: 18px;
+            text-align: center;
+            margin-right: .35rem;
+            color: #7a8a9a;
+        }
+
+    .map-embed {
+        border: 1px solid black;
+        border-radius: .5rem;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    }
+
+    .map-embed--sm {
+        height: 240px;
+    }
+        /* compact height */
+        .map-embed--sm iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+    /* Compact Details */
+    .details-card {
+        font-size: .92rem;
+        line-height: 1.25;
+    }
+
+        .details-card .detail-header {
+            padding: .5rem .75rem;
+            font-size: 1rem;
+        }
+
+        .details-card .badge-code {
+            font-size: .72rem;
+            padding: .2rem .4rem;
+        }
+
+        .details-card .section-title {
+            font-size: .95rem;
+        }
+
+        .details-card .kv {
+            grid-template-columns: 160px 1fr; /* narrower labels */
+            gap: .15rem .75rem;
+            padding: .35rem 0;
+        }
+
+            .details-card .kv .k {
+                font-size: .9rem;
+            }
+
+            .details-card .kv .v {
+                font-size: .92rem;
+            }
+
+            .details-card .kv i {
+                width: 16px;
+                margin-right: .25rem;
+                font-size: .9rem;
+            }
+
+    /* Tabs a bit tighter */
+    #projectTabs .nav-link {
+        padding: .3rem .6rem;
+        font-size: .9rem;
+    }
+
+    /* Map smaller by default (you can tweak 200–240px) */
+    .map-embed--sm {
+        height: 200px;
+    }
+
+    #statusModal .modal-header {
+        background: linear-gradient(90deg, var(--brand, #001C2B), #083855);
+        color: #fff;
+    }
+
+    #statusModal .btn-close {
+        filter: invert(1);
+        opacity: .9;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">
+        Complete Project Detail
+        <span class="text-muted">(@Model.ProjectCode)</span>
+    </h5>
+    <a class="btn theme-button btn-sm" href="@Url.Action("Index","Projects")">
+        <i class="fas fa-list me-1"></i> Back To Project List
+    </a>
+</div>
+
+<div class="card shadow-sm details-card">
+    <div class="card-header p-0 border-0">
+        <ul class="nav nav-tabs card-header-tabs ps-3 pt-2" id="projectTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-general" data-bs-toggle="tab" data-bs-target="#pane-general"
+                        type="button" role="tab" aria-controls="pane-general" aria-selected="true">
+                    General
+                </button>
+            </li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="tab-quotes" data-bs-toggle="tab" data-bs-target="#pane-quotes" type="button" role="tab">Quote</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="tab-tender" data-bs-toggle="tab" data-bs-target="#pane-tender" type="button" role="tab">Tender</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="tab-order" data-bs-toggle="tab" data-bs-target="#pane-order" type="button" role="tab">Order</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="tab-sales" data-bs-toggle="tab" data-bs-target="#pane-sales" type="button" role="tab">Sales</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="tab-files" data-bs-toggle="tab" data-bs-target="#pane-files" type="button" role="tab">Attachments</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="tab-audit" data-bs-toggle="tab" data-bs-target="#pane-audit" type="button" role="tab">Audit</button></li>
+        </ul>
+    </div>
+
+    <div class="card-body">
+        <div class="tab-content" id="projectTabsContent">
+
+            <div class="tab-pane fade show active" id="pane-general" role="tabpanel" aria-labelledby="tab-general">
+                @Html.Partial("Partials/_ProjectGeneralDetails", Model)
+            </div>
+
+            <!-- OTHER TABS (unchanged) -->
+            <div class="tab-pane fade" id="pane-quotes" role="tabpanel" aria-labelledby="tab-quotes">
+                @Html.Action("ProjectQuotes", "Projects", new { id = projectId })
+            </div>
+            <div class="tab-pane fade" id="pane-tender" role="tabpanel" aria-labelledby="tab-tender">
+                @Html.Partial("Partials/_ProjectTender", projectId)
+            </div>
+            <div class="tab-pane fade" id="pane-order" role="tabpanel" aria-labelledby="tab-order">
+                @Html.Partial("Partials/_ProjectOrder", projectId)
+            </div>
+            <div class="tab-pane fade" id="pane-sales" role="tabpanel" aria-labelledby="tab-sales">
+                @Html.Partial("Partials/_ProjectSales", projectId)
+            </div>
+            <div class="tab-pane fade" id="pane-files" role="tabpanel" aria-labelledby="tab-files">
+                @Html.Action("AttachmentsTab", new { id = projectId })
+            </div>
+            <div class="tab-pane fade" id="pane-audit" role="tabpanel" aria-labelledby="tab-audit">
+                @Html.Action("AuditTab", "Projects", new { id = projectId })
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Model -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h6 class="modal-title"><i class="fa fa-flag me-2"></i>Set Project Status</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- use a plain form to guarantee POST -->
+            <form method="post" action="@Url.Action("SetStatus","Projects")" class="m-0">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div class="modal-body">
+                    <div class="small text-muted mb-2">
+                        Current: <span class="badge bg-secondary">@((Model.Status ?? "Active"))</span>
+                    </div>
+
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="Active" @(Model.Status == "Active" ? "selected" : null)>Active</option>
+                        <option value="On Hold" @(Model.Status == "On Hold" ? "selected" : null)>On Hold</option>
+                        <option value="Closed" @(Model.Status == "Closed" ? "selected" : null)>Closed</option>
+                        <option value="Cancelled" @(Model.Status == "Cancelled" ? "selected" : null)>Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn theme-button btn-sm">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @if (TempData["Message"] != null || TempData["Error"] != null)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+              var msg  = @Html.Raw(Json.Encode(TempData["Error"] ?? TempData["Message"]));
+              var type = '@(TempData["Error"] != null ? "danger" : "success")';
+              if (msg && typeof showToast === 'function') {
+                showToast(msg, type);
+              }
+            });
+        </script>
+    }
+
+    @if (TempData["ToastMessage"] != null)
+    {
+        <script> showToast('@TempData["ToastMessage"]'); </script>
+    }
+
+    <script>
+    $(function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab) {
+            const trigger = document.querySelector(`[data-bs-target="#${tab}"]`);
+            if (trigger) {
+                new bootstrap.Tab(trigger).show();
+            }
+        }
+    });
+
+    function copyProjectCode(){
+        const txt = '@Model.ProjectCode';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt);
+        }
+    }
+    (function () {
+        var hash = (window.location.hash || '').replace('#', '');
+        if (hash) {
+        var btn = document.querySelector('[data-bs-target="#pane-' + hash + '"]');
+        if (btn) new bootstrap.Tab(btn).show();
+        }
+        document.querySelectorAll('#projectTabs [data-bs-toggle="tab"]').forEach(function (el) {
+        el.addEventListener('shown.bs.tab', function (e) {
+            var target = e.target.getAttribute('data-bs-target');
+            if (target) history.replaceState(null, '', '#' + target.replace('#pane-', ''));
+        });
+        });
+        })();
+
+        // place in Details.cshtml (after the attachments partial)
+        $(document).on('click', '#docsTable .preview-btn', function (e) {
+            e.preventDefault();
+            const url = $(this).data('img-url') || '';
+            const title = $(this).data('title') || 'Preview';
+            if (!url) return;
+
+            $('#imgPreview').attr('src', url);
+            $('#imgPreviewTitle').text(title);
+            const modalEl = document.getElementById('imgPreviewModal');
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        });
+
+        // free memory on close
+        document.getElementById('imgPreviewModal')?.addEventListener('hidden.bs.modal', function () {
+            $('#imgPreview').attr('src', '');
+        });
+
+        (function () {
+            function initDocsTable() {
+                if (!window.jQuery || !jQuery.fn || !jQuery.fn.DataTable) return;
+                if (jQuery.fn.dataTable.isDataTable('#docsTable')) return;
+
+                var table = jQuery('#docsTable').DataTable({
+                    responsive: true,
+                    autoWidth: false,
+                    paging: true,
+                    searching: true,
+                    lengthChange: true,
+                    pageLength: 5,
+                    lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, 'All']],
+                    order: [[1, 'desc']],
+                    columnDefs: [{ targets: -1, orderable: false, searchable: false }],
+                    dom: '<"row g-2 mb-2"<"col-sm-6"l><"col-sm-6 text-end"f>>t<"row g-2 mt-2"<"col-sm-5"i><"col-sm-7"p>>',
+                    initComplete: function () {
+                        jQuery('#docsTable_filter input')
+                            .attr('placeholder', 'Search files…')
+                            .addClass('form-control form-control-sm');
+                        jQuery('#docsTable_length select').addClass('form-select form-select-sm');
+                    }
+                });
+            }
+
+            // run now, and also when the Attachments tab becomes visible
+            initDocsTable();
+            document.addEventListener('shown.bs.tab', function (e) {
+                if (e.target.matches('[data-bs-target="#files"], a[href="#files"]')) {
+                    if (jQuery.fn.dataTable.isDataTable('#docsTable')) {
+                        jQuery('#docsTable').DataTable().columns.adjust().responsive.recalc();
+                    } else {
+                        initDocsTable();
+                    }
+                }
+            });
+        })();
+    </script>
+
+    <script>
+        $(function () {
+            const table = $('#auditTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+                order: [[0, 'desc']],
+                responsive: true,
+                autoWidth: false,
+                columnDefs: [
+                    { targets: 2, orderable: false } // Description not great for sorting
+                ],
+                // length (left) | right container (Excel + filter)
+                dom: '<"d-flex justify-content-between align-items-center mb-2"l<"d-flex align-items-center ms-auto" B f>>rtip',
+                buttons: [{
+                    extend: 'excelHtml5',
+                    text: '<i class="fa fa-file-excel me-1"></i> Export to Excel',
+                    className: 'btn btn-sm theme-button me-3'
+                }]
+            });
+
+            // Color the Area badges & normalize width
+            $('#auditTable .area-badge').each(function () {
+                const t = (this.getAttribute('data-area') || '').toLowerCase();
+                this.classList.remove('bg-secondary'); // remove server default if any
+                if (t.includes('attach')) this.classList.add('area-attachments');
+                else if (t.includes('quote')) this.classList.add('area-quote');
+                else if (t.includes('order')) this.classList.add('area-order');
+                else if (t.includes('sale')) this.classList.add('area-sales');
+                else if (t.includes('tender')) this.classList.add('area-tender');
+                else this.classList.add('area-general');
+            });
+
+            // Re-apply badge coloring after DT redraw (paging, search, responsive)
+            table.on('draw.dt', function () {
+                $('#auditTable .area-badge').each(function () {
+                    if (this.dataset._colored) return; // simple guard
+                    const t = (this.getAttribute('data-area') || '').toLowerCase();
+                    if (t.includes('attach')) this.classList.add('area-attachments');
+                    else if (t.includes('quote')) this.classList.add('area-quote');
+                    else if (t.includes('order')) this.classList.add('area-order');
+                    else if (t.includes('sale')) this.classList.add('area-sales');
+                    else if (t.includes('tender')) this.classList.add('area-tender');
+                    else this.classList.add('area-general');
+                    this.dataset._colored = 1;
+                });
+            });
+        });
+    </script>
+}
+

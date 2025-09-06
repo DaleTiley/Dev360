@@ -1,0 +1,43 @@
+﻿@model MillenniumWebFixed.ViewModels.ProjectQuoteCreateVm
+@using System.Globalization
+
+<style>
+    /* … your existing styles unchanged … */
+</style>
+
+<div class="page-header">
+    <h5>Create Project Quote</h5>
+    @*<div class="d-flex gap-1">
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Clone Record</button>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Export PDF</button>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Create Revision</button>
+            <div class="vr mx-1"></div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Create Order</button>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Submit for Approval</button>
+            <button class="btn btn-sm btn-outline-secondary" type="button" disabled>Submit Credit Order</button>
+        </div>*@
+</div>
+
+@using (Html.BeginForm("Create", "ProjectQuotes", FormMethod.Post,
+    new { @class = "compact-form needs-validation", novalidate = "novalidate" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(m => m.ProjectId)
+
+    <div id="quoteFormContainer"
+         data-project-id="@Model.ProjectId"
+         data-next-seq-url="@Url.Action("NextSeq","ProjectQuotes")">
+    </div>
+
+    @Html.Partial("~/Views/Projects/Quote/_QuoteForm.cshtml", Model)
+}
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script src="~/Scripts/project-quotes-create.js"></script>
+}
+
+@section Modals {
+    @Html.Partial("~/Views/Shared/_ValidationModal.cshtml", new ViewDataDictionary { { "ModalId", "quoteValidationModal" } })
+}

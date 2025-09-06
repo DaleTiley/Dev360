@@ -1,0 +1,19 @@
+﻿@{
+    var modalId = (string)ViewData["ModalId"] ?? "validationModal";
+}
+<div class="modal fade" id="@modalId" tabindex="-1" aria-labelledby="validationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-danger text-white py-2">
+                <h6 class="modal-title" id="validationModalLabel">Required Fields Missing</h6>
+                <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body small">
+                <ul id="missingFieldsList" class="mb-0"></ul>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

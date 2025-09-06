@@ -1,0 +1,50 @@
+﻿@model IEnumerable<MillenniumWebFixed.ViewModels.CustomerProjectRowVm>
+
+@functions {
+    string StatusBadgeClass(string s)
+    {
+        s = (s ?? "").Trim().ToLowerInvariant();
+        if (s == "active") return "bg-success";
+        if (s == "on hold" || s == "onhold" || s == "hold") return "bg-warning text-dark";
+        if (s == "closed" || s == "complete" || s == "completed") return "bg-secondary";
+        if (s == "cancelled" || s == "canceled") return "bg-danger";
+        return "bg-secondary";
+    }
+}
+
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="5" class="text-center text-muted py-3">No projects found.</td>
+    </tr>
+}
+else
+{
+    foreach (var p in Model)
+    {
+<tr>
+    <td style="white-space:nowrap;">
+        <a href="@Url.Action("Details","Projects", new { id = p.Id })" class="fw-semibold">@p.ProjectCode</a>
+    </td>
+    <td>@p.SiteName</td>
+    <td>@p.Address</td>
+    <td class="contact-cell">
+        <div class="line fw-semibold">@p.ContactName</div>
+        @if (!string.IsNullOrWhiteSpace(p.ContactPhone))
+        {
+            <div class="line text-muted small"><i class="fa fa-phone me-1"></i><a href="tel:@p.ContactPhone">@p.ContactPhone</a></div>
+        }
+        @if (!string.IsNullOrWhiteSpace(p.ContactEmail))
+        {
+            <div class="line text-muted small"><i class="fa fa-envelope me-1"></i><a href="mailto:@p.ContactEmail">@p.ContactEmail</a></div>
+        }
+    </td>
+    <td class="text-center">
+        <span class="badge @StatusBadgeClass(p.Status)">@p.Status</span>
+    </td>
+    <td class="text-end" style="white-space:nowrap;">
+        @(p.CreatedAt?.ToString("yyyy-MM-dd HH:mm") ?? "")
+    </td>
+</tr>
+    }
+}

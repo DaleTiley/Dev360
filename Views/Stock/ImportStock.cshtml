@@ -1,0 +1,92 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Import Stock from Excel";
+}
+
+<div class="container mt-1">
+    <h5 class="mb-3">Import Stock from Excel</h5>
+
+    <!-- Warning if stock exists -->
+    @if (ViewBag.HasStock == true)
+    {
+        <div class="alert alert-warning small d-flex align-items-center" role="alert">
+            <i class="fas fa-triangle-exclamation me-2"></i>
+            Stock records already exist. Importing again will override current data.
+        </div>
+    }
+
+    <!-- TempData messages -->
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <!-- Import Form -->
+    @using (Html.BeginForm("Import", "Stock", FormMethod.Post, new { enctype = "multipart/form-data", @id = "stockImportForm" }))
+    {
+        <div class="card shadow-lg border border-light-subtle mb-4">
+            <div class="card-body">
+                <label for="file" class="form-label fw-semibold">Select Excel File (.xlsx)</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-file-excel"></i></span>
+                    <input type="file" name="file" id="file" class="form-control" accept=".xlsx" required autocomplete="off" />
+                </div>
+
+                <!-- Optional: Confirm override checkbox if stock exists -->
+                @if (ViewBag.HasStock == true)
+                {
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="confirmOverride" required />
+                        <label class="form-check-label small" for="confirmOverride">
+                            I understand this will override existing stock records.
+                        </label>
+                    </div>
+                }
+
+                <button type="submit" class="btn btn-dark mt-3">Import</button>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector('#stockImportForm');
+            if (form) {
+                form.addEventListener('submit', function () {
+                    showSpinner("Importing Excel file...");
+                });
+            }
+
+            if ($.connection.progressHub) {
+                var progressHub = $.connection.progressHub;
+
+                progressHub.client.receiveProgress = function (message) {
+                    console.log("📦 StockImport update:", message);
+
+                    const overlay = document.getElementById("globalSpinnerOverlay");
+                    const text = document.getElementById("progressText");
+
+                    if (overlay && !overlay.classList.contains("show")) {
+                        overlay.classList.add("show");
+                    }
+
+                    if (text) {
+                        text.textContent = message;
+                    }
+                };
+
+                $.connection.hub.start().done(function () {
+                    console.log("SignalR connected (StockImport)");
+                });
+            } else {
+                console.warn("progressHub not found (StockImport)");
+            }
+        });
+    </script>
+}

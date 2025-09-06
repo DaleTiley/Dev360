@@ -1,0 +1,136 @@
+﻿@model string
+
+@{
+    var stages = new[] { "Qualify", "Propose", "Follow Up", "Site Measurements", "Close" };
+    var currentStage = Model ?? "Qualify";
+}
+
+<style>
+    /* container */
+    .stage-tracker {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: .75rem;
+        padding: 6px 12px;
+        background: #f3f3f3;
+        border-radius: 0;
+    }
+
+    /* each stage */
+    .stage {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        font-size: .75rem;
+        /* sizing vars */
+        --circle: 28px;
+        --gap: 16px;
+        --lineH: 2px;
+        --headW: 10px;
+        --headH: 5px;
+    }
+
+        /* circle */
+        .stage span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: var(--circle);
+            height: var(--circle);
+            box-sizing: border-box;
+            border: 1px solid #999;
+            border-radius: 50%;
+            background: #fff;
+            color: #999;
+            font-weight: 700;
+            font-size: .75rem;
+            line-height: 1;
+            transform-origin: center;
+            transition: all .2s ease-in-out;
+        }
+
+        .stage.active span {
+            border-color: #198754;
+            color: #198754;
+            background: #d1e7dd;
+            box-shadow: 0 0 0 2px #198754, 0 0 8px rgba(25,135,84,.6);
+            transform: scale(1.08);
+        }
+
+        .stage.active small {
+            font-weight: 700;
+            font-size: .9rem;
+            color: #198754;
+        }
+
+        .stage.completed span {
+            background: #0d6efd;
+            color: #fff;
+            border-color: #0d6efd;
+        }
+
+        /* connector: line + arrow head (default grey) */
+        .stage:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            top: calc(var(--circle)/2);
+            transform: translateY(-50%);
+            left: calc(50% + var(--circle)/2 + var(--gap));
+            right: calc(var(--headW) + var(--gap));
+            height: var(--lineH);
+            background: #ccc;
+        }
+
+        .stage:not(:last-child)::before {
+            content: "";
+            position: absolute;
+            top: calc(var(--circle)/2);
+            transform: translateY(-50%);
+            right: var(--gap);
+            width: 0;
+            height: 0;
+            border-left: var(--headW) solid #ccc;
+            border-top: var(--headH) solid transparent;
+            border-bottom: var(--headH) solid transparent;
+        }
+
+        /* active connector turns green; others stay grey */
+        .stage.active:not(:last-child)::after {
+            background: #198754;
+        }
+
+        .stage.active:not(:last-child)::before {
+            border-left-color: #198754;
+        }
+
+    /* responsive tweaks */
+    @@media (max-width: 992px) {
+        .stage {
+            --gap: 10px;
+            --headW: 8px;
+        }
+    }
+</style>
+
+<div class="stage-tracker">
+    @for (int i = 0; i < stages.Length; i++)
+    {
+        var stage = stages[i];
+        var statusClass = "pending";
+
+        if (stage == currentStage)
+        {
+            statusClass = "active";
+        }
+        else if (Array.IndexOf(stages, currentStage) > i)
+        {
+            statusClass = "completed";
+        }
+
+        <div class="stage @statusClass">
+            <span>@(i + 1)</span><br />
+            <small>@stage</small>
+        </div>
+    }
+</div>

@@ -1,0 +1,28 @@
+﻿@using MillenniumWebFixed.ViewModels
+
+<div class="modal fade" id="contactSearchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white py-2">
+                <h6 class="modal-title mb-0">Select Contact</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input id="contactSearchInput" class="form-control form-control-sm mb-2" placeholder="Search contacts..." />
+                <table id="contactTable" class="table table-striped table-sm w-100">
+                    <thead class="bg-primary text-white small">
+                        <tr>
+                            <th class="d-none">ContactId</th>
+                            <th>Name</th>
+                            <th>Designation</th>
+                            <th>Email</th>
+                            <th>Phone Number</th>
+                            <th style="width:100px" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactRows" class="small"><!-- rows injected via AJAX --></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

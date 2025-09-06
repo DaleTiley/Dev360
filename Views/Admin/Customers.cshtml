@@ -1,0 +1,194 @@
+@model List<MillenniumWebFixed.Models.Customer>
+@{
+    ViewBag.Title = "Manage Customers";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h4 class="mb-3">Manage Customers</h4>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+<style>
+    table.dataTable td,
+    table.dataTable th {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    table.dataTable thead th {
+        background-color: #001C2B !important;
+        color: white !important;
+    }
+
+    table.dataTable tbody tr:nth-child(odd) {
+        background-color: #f7f9fc;
+    }
+    /* Theme the "Projects for Customer" modal */
+    #customerProjectsModal .modal-content {
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #d9e1e7;
+        box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    }
+
+    #customerProjectsModal .modal-header {
+        background: linear-gradient(90deg, var(--brand, #001C2B), #083855);
+        color: #fff;
+        padding: .55rem .75rem;
+        border-bottom: 0;
+    }
+
+    #customerProjectsModal .modal-title {
+        font-weight: 600;
+        letter-spacing: .2px;
+    }
+
+    #customerProjectsModal .btn-close {
+        filter: invert(1); /* make the close icon white */
+        opacity: .9;
+    }
+
+    #customerProjectsModal thead th {
+        background: #f5f7fa;
+        border-bottom-color: #e5eaf0;
+    }
+
+    #customerProjectsModal .contact-cell .line {
+        line-height: 1.2;
+    }
+
+    #customerProjectsModal .contact-cell a {
+        text-decoration: none;
+    }
+
+        #customerProjectsModal .contact-cell a:hover {
+            text-decoration: underline;
+        }
+</style>
+<button class="btn theme-button mb-2" onclick="openCustomerModal()">Add New Customer</button>
+
+<table class="table table-striped table-sm" id="customerTable">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>City</th>
+            <th class="text-center">Projects</th>
+            <th>Active</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            var counts = ViewBag.ProjectCounts as IDictionary<int, int> ?? new Dictionary<int, int>();
+        }
+        @foreach (var item in Model)
+        {
+            int projCount = 0;                      // default
+            counts.TryGetValue(item.Id, out projCount);  // overwrite if present
+
+            <tr>
+                <td>@item.CustomerName</td>
+                <td>@item.Email</td>
+                <td>@item.Phone</td>
+                <td>@item.City</td>
+                <td class="text-center" style="width:120px;">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary js-cust-projects"
+                            data-customer-id="@item.Id"
+                            data-customer-name="@item.CustomerName"
+                            @(projCount == 0 ? "disabled" : null)>
+                        <i class="fa fa-diagram-project me-1"></i>
+                        <span class="badge @(projCount > 0 ? "bg-success" : "bg-secondary")">@projCount</span>
+                    </button>
+                </td>
+                <td>@(item.IsActive ? "Yes" : "No")</td>
+                <td><button class="btn btn-sm theme-button" onclick="editCustomer(@item.Id)">Edit</button></td>
+            </tr>
+        }
+    </tbody>
+
+</table>
+
+<div class="modal fade" id="customerProjectsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title">Projects for <span id="custProjName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <!-- inside #customerProjectsModal -->
+                    <table class="table table-sm table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:120px;">Code</th>
+                                <th>Site</th>
+                                <th>Address</th>
+                                <th style="width:240px;">Contact</th>
+                                <th class="text-center" style="width:110px;">Status</th>
+                                <th class="text-end" style="width:150px;">Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="custProjRows">
+                            <tr><td colspan="6" class="text-center py-3 text-muted">Select a customer…</td></tr>  <!-- colspan 6 -->
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("_CustomerModal", new MillenniumWebFixed.Models.Customer())
+<script src="~/Scripts/AdminCustomers.js"></script>
+@section Scripts {
+    <script>
+        (function(){
+          const modalEl = document.getElementById('customerProjectsModal');
+          const tbody   = document.getElementById('custProjRows');
+          const titleEl = document.getElementById('custProjName');
+
+          document.addEventListener('click', function(e){
+            const btn = e.target.closest('.js-cust-projects');
+            if (!btn) return;
+
+            const id   = btn.getAttribute('data-customer-id');
+            const name = btn.getAttribute('data-customer-name');
+
+            titleEl.textContent = name || '';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3">Loading…</td></tr>';
+
+            const m = bootstrap.Modal.getOrCreateInstance(modalEl);
+            m.show();
+
+            fetch('@Url.Action("CustomerProjects","Admin")' + '?id=' + encodeURIComponent(id) + '&_=' + Date.now(),
+                  { headers: { "X-Requested-With": "XMLHttpRequest" } })
+              .then(r => r.ok ? r.text() : Promise.reject(r.status))
+              .then(html => { tbody.innerHTML = html; })
+              .catch(_ => { tbody.innerHTML = '<tr><td colspan="4" class="text-danger text-center py-3">Failed to load projects.</td></tr>'; });
+          });
+        })();
+    </script>
+    <script>
+        $(function () {
+            $('#customerTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                lengthChange: true,
+                lengthMenu: [[5, 10, 25, 50, 100], [5, 10, 25, 50, 100]]
+            });
+        });
+    </script>
+}

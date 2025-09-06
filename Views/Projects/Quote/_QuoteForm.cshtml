@@ -1,0 +1,329 @@
+﻿@model MillenniumWebFixed.ViewModels.ProjectQuoteCreateVm
+
+<div class="card mb-2">
+    <div class="card-body">
+        <!-- Top row -->
+        <div class="row g-2">
+            @{
+                var isEdit = (Model != null) && (Model.QuoteId > 0);
+            }
+
+            <div class="col-xl-3 col-lg-4">
+                <label class="form-label small">Quote No</label>
+                @Html.TextBoxFor(m => m.QuoteNumber,
+                    new
+                        {
+                            @class = "form-control form-control-sm readonly-field",
+                            @readonly = "readonly",
+                            tabindex = "-1",
+                          placeholder = "Auto on save (preview updates…)"
+                        })
+                <div class="form-text small text-muted">
+                    Auto Generated &amp; will change as you type values
+                </div>
+                @Html.ValidationMessageFor(m => m.QuoteNumber, "", new { @class = "text-danger small" })
+            </div>
+
+            <!-- Building Type -->
+            <div class="col-xl-3 col-lg-4">
+                <label class="form-label small">Building Type</label>
+                @if (isEdit)
+                {
+                    @Html.TextBoxFor(m => m.BuildingType,
+                        new { @class = "form-control form-control-sm readonly-field", @readonly = "readonly", tabindex = "-1" })
+                    <div class="form-text small text-muted">Locked on edit. Use <b>Create Revision</b> or <b>Clone Quote</b> to change.</div>
+                }
+                else
+                {
+                    @Html.TextBoxFor(m => m.BuildingType,
+                        new { @class = "form-control form-control-sm text-uppercase", autocomplete = "off" })
+                    <div class="form-text small text-muted">Enter the building type code (auto upper-case).</div>
+                }
+                @Html.ValidationMessageFor(m => m.BuildingType, "", new { @class = "text-danger small" })
+            </div>
+
+            <!-- Quotation Option -->
+            <div class="col-xl-3 col-lg-4">
+                <label class="form-label small">Quotation Option</label>
+                @if (isEdit)
+                {
+                    @Html.TextBoxFor(m => m.QuotationOption,
+                        new { @class = "form-control form-control-sm readonly-field", @readonly = "readonly", tabindex = "-1" })
+                    <div class="form-text small text-muted">Locked on edit. Change via <b>Create Revision</b> or <b>Clone Quote</b>.</div>
+                }
+                else
+                {
+                    @Html.TextBoxFor(m => m.QuotationOption,
+                        new { @class = "form-control form-control-sm", type = "number", min = "1", step = "1", autocomplete = "off" })
+                    <div class="form-text small text-muted">Numeric only (e.g. 1, 2…).</div>
+                }
+                @Html.ValidationMessageFor(m => m.QuotationOption, "", new { @class = "text-danger small" })
+            </div>
+
+            <!-- Revision -->
+            <div class="col-xl-3 col-lg-4">
+                <label class="form-label small">Revision</label>
+                @if (isEdit)
+                {
+                    @Html.TextBoxFor(m => m.Revision,
+                        new { @class = "form-control form-control-sm readonly-field", @readonly = "readonly", tabindex = "-1" })
+                    <div class="form-text small text-muted">Locked on edit. Use <b>Create Revision</b> to bump the revision.</div>
+                }
+                else
+                {
+                    @Html.TextBoxFor(m => m.Revision,
+                        new { @class = "form-control form-control-sm text-uppercase", maxlength = "2", autocomplete = "off" })
+                    <div class="form-text small text-muted">Use a letter (A, B…) or number.</div>
+                }
+                @Html.ValidationMessageFor(m => m.Revision, "", new { @class = "text-danger small" })
+            </div>
+
+        </div>
+
+        <hr class="my-2" />
+
+        <div class="row g-2">
+            <!-- Left column -->
+            <div class="col-lg-6">
+                <div class="row g-2">
+                    <div class="col-sm-6">
+                        <label class="form-label small">Quantity of Units</label>
+                        @Html.TextBoxFor(m => m.QuantityOfUnits, new { @class = "form-control form-control-sm", type = "number", min = "0" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Designer</label>
+                        @Html.DropDownListFor(m => m.DesignerId,
+                            new SelectList(Model.DesignerOptions, "Value", "Text", Model.DesignerId),
+                            "---",
+                            new { @class = "form-control form-control-sm" })
+                        @Html.ValidationMessageFor(m => m.DesignerId, "", new { @class = "text-danger small" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Submission Date</label>
+                        @Html.TextBoxFor(m => m.SubmissionDate, "{0:yyyy-MM-dd}",
+                          new { @class = "form-control form-control-sm", type = "date" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">PMRJB File Ref</label>
+                        @Html.TextBoxFor(m => m.PmrjbFileRef, new { @class = "form-control form-control-sm" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Last Import Date</label>
+                        @Html.TextBoxFor(m => m.LastImportDate, "{0:yyyy-MM-dd}",
+                          new { @class = "form-control form-control-sm", type = "date" })
+                    </div>
+
+                    <!-- ✅ Moved here -->
+                    <div class="col-12">
+                        <label class="form-label small">Quote Notes / Special Instructions</label>
+                        @Html.TextAreaFor(m => m.Notes,
+                            new
+                            {
+                                maxlenght = 255,
+                                @class = "form-control form-control-sm",
+                                rows = "7",
+                                placeholder = "Add any special notes or instructions…"
+                            })
+                        @Html.ValidationMessageFor(m => m.Notes, "", new { @class = "text-danger small" })
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right column -->
+            <div class="col-lg-6">
+                <div class="row g-2">
+                    <div class="col-sm-6">
+                        <label class="form-label small">Roof Pitch</label>
+                        @Html.TextBoxFor(m => m.RoofPitch, new { @class = "form-control form-control-sm" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Roof Overhang</label>
+                        @Html.TextBoxFor(m => m.RoofOverhang, new { @class = "form-control form-control-sm" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Gable Overhang</label>
+                        @Html.TextBoxFor(m => m.GableOverhang, new { @class = "form-control form-control-sm" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Roof Covering</label>
+                        @Html.TextBoxFor(m => m.RoofCovering, new { @class = "form-control form-control-sm" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">TC Loading</label>
+                        @Html.TextBoxFor(m => m.TcLoading, new { @class = "form-control form-control-sm" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">BC Loading</label>
+                        @Html.TextBoxFor(m => m.BcLoading, new { @class = "form-control form-control-sm" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Wind Speed</label>
+                        @Html.TextBoxFor(m => m.WindSpeed, new { @class = "form-control form-control-sm" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Terrain Category</label>
+                        @Html.TextBoxFor(m => m.TerrainCategory, new { @class = "form-control form-control-sm" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Max Battens C/C</label>
+                        @Html.TextBoxFor(m => m.MaxBattensCc, new { @class = "form-control form-control-sm" })
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label small">Max Trusses C/C</label>
+                        @Html.TextBoxFor(m => m.MaxTrussesCc, new { @class = "form-control form-control-sm" })
+                    </div>
+
+                    @using System.Globalization
+
+                    <div class="col-sm-6">
+                        <label class="form-label small">Roof Area (m²)</label>
+                        @Html.TextBoxFor(m => m.RoofArea, new
+                        {
+                            @class = "form-control form-control-sm dec2",
+                            type = "text",
+                            inputmode = "decimal",
+                            autocomplete = "off"
+                        })
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label class="form-label small">Floor Area (m²)</label>
+                        @Html.TextBoxFor(m => m.FloorArea, new
+                        {
+                            @class = "form-control form-control-sm dec2",
+                            type = "text",
+                            inputmode = "decimal",
+                            autocomplete = "off"
+                        })
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end gap-1 mt-2 p-2">
+            <a class="btn btn-sm btn-outline-dark" href="@Url.Action("Details","Projects", new { id = Model.ProjectId, tab = "quotes" })">Cancel</a>
+            <button class="btn btn-sm theme-button" type="submit">Save Quote</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // remove MVC unobtrusive "number/range" on these fields if present
+        var $ = window.jQuery;
+        if ($ && $.validator && $.validator.unobtrusive) {
+            $('.dec2').each(function () {
+                $(this).removeAttr('data-val-number')
+                    .removeAttr('data-val-range');
+                try { $.validator.unobtrusive.parseElement(this); } catch (e) { }
+            });
+        }
+
+        function insertAtCaret(el, text) {
+            const start = el.selectionStart ?? el.value.length;
+            const end = el.selectionEnd ?? el.value.length;
+            const before = el.value.slice(0, start);
+            const after = el.value.slice(end);
+            el.value = before + text + after;
+            const pos = start + text.length;
+            try { el.setSelectionRange(pos, pos); } catch (e) { }
+        }
+
+        function sanitizeValue(el) {
+            // normalize spaces and commas -> dots
+            let v = el.value.replace(/\s+/g, '').replace(/,/g, '.');
+
+            // keep digits and dots only
+            v = v.replace(/[^0-9.]/g, '');
+
+            // allow only one dot
+            const firstDot = v.indexOf('.');
+            if (firstDot !== -1) {
+                v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '');
+            }
+
+            // limit decimals to 2
+            if (firstDot !== -1) {
+                const parts = v.split('.');
+                parts[1] = (parts[1] || '').slice(0, 2);
+                v = parts[0] + (parts[1] ? '.' + parts[1] : '');
+            }
+
+            el.value = v;
+        }
+
+        function handleKeyDownCapture(e) {
+            const el = e.target;
+            if (!el.classList.contains('dec2')) return;
+
+            const k = e.key;
+
+            // Always allow nav/edit keys
+            if (k === 'Backspace' || k === 'Delete' || k === 'Tab' ||
+                k === 'ArrowLeft' || k === 'ArrowRight' || k === 'Home' || k === 'End' ||
+                e.ctrlKey || e.metaKey) {
+                return; // don't block
+            }
+
+            // Digits: let them through; other handlers may still interfere but we'll sanitize after
+            if (k >= '0' && k <= '9') return;
+
+            // Dot/comma: insert ourselves and stop everything else
+            if (k === '.' || k === ',') {
+                // If already has a dot, ignore
+                if (el.value.includes('.') || el.value.includes(',')) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    e.stopPropagation();
+                    return;
+                }
+                // Insert '.' at caret and stop propagation (so no global blocker can prevent it)
+                e.preventDefault();
+                insertAtCaret(el, '.');
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+                return;
+            }
+
+            // Block everything else (letters/symbols)
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            e.stopPropagation();
+        }
+
+        function handlePaste(e) {
+            const el = e.target;
+            if (!el.classList.contains('dec2')) return;
+            e.preventDefault();
+            let t = (e.clipboardData || window.clipboardData).getData('text') || '';
+            // normalize pasted chunk
+            t = t.replace(/\s+/g, '').replace(/,/g, '.').replace(/[^0-9.]/g, '');
+            // collapse extra dots in the pasted fragment
+            const firstDot = t.indexOf('.');
+            if (firstDot !== -1) {
+                t = t.slice(0, firstDot + 1) + t.slice(firstDot + 1).replace(/\./g, '');
+            }
+            insertAtCaret(el, t);
+            sanitizeValue(el);
+        }
+
+        function handleInput(e) {
+            if (!e.target.classList.contains('dec2')) return;
+            sanitizeValue(e.target);
+        }
+
+        // Attach listeners
+        // keydown in CAPTURE phase to beat site-wide blockers
+        document.addEventListener('keydown', handleKeyDownCapture, true);
+        document.querySelectorAll('.dec2').forEach(function (el) {
+            el.setAttribute('inputmode', 'decimal');
+            el.setAttribute('autocomplete', 'off');
+            el.addEventListener('paste', handlePaste);
+            el.addEventListener('input', handleInput);
+            el.addEventListener('blur', function () { sanitizeValue(el); });
+        });
+    });
+</script>
+
+
+
+

@@ -1,0 +1,85 @@
+﻿@model MillenniumWebFixed.ViewModels.CloneQuoteVm
+@{ Layout = null; }
+
+<div class="modal-header">
+    <h5 class="modal-title">Clone Quote</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+@using (Html.BeginForm("Clone", "ProjectQuotes", FormMethod.Post, new { id = "cloneQuoteForm" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.SourceQuoteId)
+
+<div class="modal-body">
+    <div class="row g-3">
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.BuildingType, new { @class = "form-label small" })
+            @Html.TextBoxFor(m => m.BuildingType,
+                new { @class = "form-control form-control-sm text-uppercase", autocomplete = "off" })
+            @Html.ValidationMessageFor(m => m.BuildingType, "", new { @class = "text-danger small" })
+        </div>
+
+        <div class="col-md-6">
+            @Html.LabelFor(m => m.QuotationOption, new { @class = "form-label small" })
+            @Html.TextBoxFor(m => m.QuotationOption,
+                new { @class = "form-control form-control-sm", type = "number", min = "1", step = "1", autocomplete = "off" })
+            @Html.ValidationMessageFor(m => m.QuotationOption, "", new { @class = "text-danger small" })
+        </div>
+    </div>
+
+    <div class="mt-3 alert alert-info small mb-0">
+        <strong>What happens when you clone:</strong>
+        <ul class="mb-0 ps-3">
+            <li>A <em>new</em> quote will be created for this project; the original stays unchanged.</li>
+            <li><strong>Quote No</strong> will advance to the next available number.</li>
+            <li><strong>Revision</strong> will reset to <strong>A</strong>.</li>
+            <li>You can change <strong>Building Type</strong> and/or <strong>Quotation Option</strong> before cloning.</li>
+            <li>All other fields will be copied into the new quote. The clone will start with status <strong>Draft</strong>.</li>
+        </ul>
+    </div>
+
+</div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn theme-button btn-sm">
+            <i class="fa fa-copy me-1"></i> Clone
+        </button>
+    </div>
+}
+
+<script>
+(function(){
+  const form = document.getElementById('cloneQuoteForm');
+  if (!form) return;
+
+  // Auto uppercase BT
+  const bt = document.getElementById('@Html.IdFor(m => m.BuildingType)');
+  if (bt) bt.addEventListener('input', () => bt.value = bt.value.toUpperCase());
+
+  // Ajax submit → expect JSON { ok: true, redirect: "..." }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const fd = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: fd
+    })
+    .then(r => r.json().catch(() => null).then(j => j || r.text()))
+    .then(res => {
+      if (res && res.ok && res.redirect) {
+        window.location.href = res.redirect;
+      } else if (typeof res === 'string') {
+        // server re-rendered the partial with validation errors
+        const modal = form.closest('.modal-content');
+        if (modal) modal.innerHTML = res;
+      } else {
+        form.submit(); // fallback full post
+      }
+    })
+    .catch(() => form.submit());
+  });
+})();
+</script>

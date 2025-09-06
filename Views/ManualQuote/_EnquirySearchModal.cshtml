@@ -1,0 +1,86 @@
+﻿@model IEnumerable<MillenniumWebFixed.ViewModels.EnquiryDropdownItem>
+<style>
+    .bg-millennium {
+        background-color: #003366; /* adjust to your actual theme color */
+    }
+</style>
+
+<div class="modal fade" id="enquirySearchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white py-2 d-flex justify-content-between align-items-center">
+                <h6 class="modal-title mb-0">Select Enquiry</h6>
+                <div>
+                    <button type="button" class="btn btn-sm btn-light me-2" onclick="openAddEnquiryModal()">
+                        <i class="fas fa-plus me-1"></i> Add New
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Close
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <table id="enquiryTable" class="table table-striped table-sm" style="width: 100%;">
+                    <thead class="bg-primary text-white small">
+                        <tr>
+                            <th class="d-none">EnquiryId</th>
+                            <th>Enquiry Number</th>
+                            <th>Customer Name</th>
+                            <th style="width: 100px; text-align:center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @foreach (var enquiry in Model)
+                        {
+                            <tr>
+                                <td class="d-none">@enquiry.EnquiryId</td>
+                                <td>@enquiry.EnquiryNumber</td>
+                                <td>@enquiry.CustomerName</td>
+                                <td style="width: 100px; text-align:center;">
+                                    <button type="button" class="btn btn-sm theme-button" onclick="selectEnquiry(@enquiry.EnquiryId, '@enquiry.EnquiryNumber')">Select</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADD ENQUIRY Modal -->
+<div class="modal fade" id="addEnquiryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="addEnquiryForm">
+            <div class="modal-content">
+                <div class="modal-header bg-millennium text-white py-2">
+                    <h6 class="modal-title mb-0">Add New Enquiry</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body small">
+                    <div class="mb-2">
+                        <label for="newEnquiryNumber" class="form-label">Enquiry Number</label>
+                        <input type="text" class="form-control form-control-sm" id="newEnquiryNumber" name="EnquiryNumber" required />
+                    </div>
+                    <div class="mb-2">
+                        <label for="newCustomerId" class="form-label">Customer</label>
+                        <select class="form-select form-select-sm" id="newCustomerId" name="CustomerId">
+                            @foreach (var c in ViewBag.CustomerList as List<SelectListItem>)
+                            {
+                                <option value="@c.Value">@c.Text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label for="newNotes" class="form-label">Notes</label>
+                        <textarea class="form-control form-control-sm" id="newNotes" name="Notes" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="submit" class="btn theme-button btn-sm">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

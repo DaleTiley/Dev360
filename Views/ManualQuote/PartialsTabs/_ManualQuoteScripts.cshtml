@@ -1,0 +1,914 @@
+﻿@model MillenniumWebFixed.ViewModels.ManualQuoteViewModel
+<script>
+    const isEditing = @((Model.Id > 0).ToString().ToLower());
+    const quoteNo = @Html.Raw(Json.Encode(Model.QuoteNo));
+    const quoteRevision = @Html.Raw(Json.Encode(Model.RevisionID));
+
+    @if (TempData["Message"] != null)
+    {
+        var type = TempData["ToastType"] ?? "success";
+        <text>
+            document.addEventListener("DOMContentLoaded", function () {
+                showToast("@TempData["Message"]", "@type");
+            });
+        </text>
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const uploadBtn = document.getElementById('uploadBtn');
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', uploadQuoteImages);
+        }
+    });
+
+            function showSuccessModal(message) {
+                $('#successModalBody').html(message);
+                $('#successModal').modal('show');
+            }
+
+            function generateQuote() {
+                let quoteId = $('#quoteId').val();
+                showSpinner("Validating Data..."); // Show immediately
+
+                if (!quoteId) {
+                    $.ajax({
+                        url: '/ManualQuote/SaveManualQuote',
+                        type: 'POST',
+                        data: $('#manualQuoteForm').serialize(),
+                        success: function (res) {
+                            if (res.success) {
+                                quoteId = res.quoteId;
+                                $('#quoteId').val(quoteId);
+                                callGeneratePdf(quoteId);
+                            } else {
+                                hideSpinner();
+                                showSuccessModal("Save failed: " + res.message);
+                            }
+                        },
+                        error: function (xhr) {
+                            hideSpinner();
+                            showSuccessModal("Save request failed. Status: " + xhr.status);
+                        }
+                    });
+                } else {
+                    callGeneratePdf(quoteId);
+                }
+            }
+
+            function callGeneratePdf() {
+                buildLineItemsJson(); // Ensure LineItemsJson is fresh
+                const formData = $('#manualQuoteForm').serialize();
+
+                showSpinner("Generating PDF...");
+
+                $.ajax({
+                    url: '/ManualQuote/GeneratePdfQuote',
+                    method: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            showSuccessModal("Quote generated and saved successfully.");
+                            setTimeout(() => {
+                                window.open(response.path, '_blank'); // Open PDF
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showSuccessModal("Error: " + (response.message || "An unknown error occurred."));
+                        }
+                    },
+                    error: function (xhr) {
+                        const errorMessage = xhr.statusText || "PDF generation failed.";
+                        showSuccessModal("PDF generation failed. Status: " + xhr.status + " - " + errorMessage);
+                    },
+                    complete: function () {
+                        hideSpinner();
+                    }
+                });
+            }
+
+            $('#btnPreviewQuote').off('click').on('click', function (e) {
+                e.preventDefault();
+
+                const $button = $(this);
+                if ($button.prop('disabled')) return;
+
+                $button.prop('disabled', true);
+                showSpinner("Building Preview...");
+
+                try {
+                    const items = buildLineItemsJson(); // now returns items
+                    if (!validateLineItems(items)) {
+                        hideSpinner();
+                        $button.prop('disabled', false);
+                        return;
+                    }
+
+                    const formData = $('#manualQuoteForm').serialize();
+
+                    $.ajax({
+                        url: '/ManualQuote/RenderPreview',
+                        method: 'POST',
+                        data: formData,
+                        success: function (html) {
+                            $('#quotePreviewIframe').attr('srcdoc', html);
+                            $('#quotePreviewModal').modal('show');
+                        },
+                        error: function () {
+                            showSuccessModal("Preview failed.");
+                        },
+                        complete: function () {
+                            hideSpinner();
+                            $button.prop('disabled', false);
+                        }
+                    });
+                } catch (ex) {
+                    hideSpinner();
+                    $button.prop('disabled', false);
+                    showSuccessModal("An error occurred while preparing the preview.");
+                }
+            });
+
+            function buildLineItemsJson() {
+                const items = [];
+
+                $('#quoteItemsTable tbody tr').each(function () {
+                    const row = $(this);
+                    const productId = row.find('input[name*="[ProductId]"]').val();
+                    const productCode = row.find('input[name*="[ProductCode]"]').val();
+                    const qty = parseInt(row.find('input[name*="[Qty]"]').val()) || 0;
+                    const costPrice = parseFloat(row.find('input[name*="[CostPrice]"]').val()) || 0;
+                    const marginPercent = parseFloat(row.find('input[name*="[MarginPercent]"]').val()) || 0;
+                    const sellingPrice = parseFloat(row.find('input[name*="[SellingPrice]"]').val()) || 0;
+
+                    items.push({
+                        ProductId: productId,
+                        ProductCode: productCode,
+                        Qty: qty,
+                        CostPrice: costPrice,
+                        MarginPercent: marginPercent,
+                        SellingPrice: sellingPrice
+                    });
+                });
+
+                $('#LineItemsJson').val(JSON.stringify(items));
+                return items;
+            }
+
+            function validateLineItems(items) {
+                const $rows = $('#quoteItemsTable tbody tr');
+                let firstInvalidRowFound = false;
+
+                const zeroPriceItems = [];
+
+                $rows.each(function (index) {
+                    const row = $(this);
+                    const costInput = row.find('input[name*="[CostPrice]"]');
+                    const sellInput = row.find('input[name*="[SellingPrice]"]');
+                    const code = row.find('input[name*="[ProductCode]"]').val();
+                    const desc = row.find('td:nth-child(2)').text().trim(); // assuming Name is 2nd td
+
+                    const cost = parseFloat(costInput.val()) || 0;
+                    const sell = parseFloat(sellInput.val()) || 0;
+
+                    // Clear previous highlight
+                    row.removeClass('table-danger');
+
+                    if (cost === 0 || sell === 0) {
+                        zeroPriceItems.push({ code, desc });
+
+                        // Highlight and scroll to first invalid
+                        if (!firstInvalidRowFound) {
+                            firstInvalidRowFound = true;
+                            row.addClass('table-danger'); // Bootstrap red
+                            $('html, body').animate({
+                                scrollTop: row.offset().top - 100
+                            }, 400);
+                            (cost === 0 ? costInput : sellInput).focus();
+                        } else {
+                            row.addClass('table-danger');
+                        }
+                    }
+                });
+
+                if (zeroPriceItems.length > 0) {
+                    const listItems = zeroPriceItems.map(i =>
+                        `<li><span class="fw-bold">${i.code} : ${i.desc}</span></li>`
+                    ).join('');
+
+                    const msg = `
+                            <p><strong>Warning:</strong> The following items have missing cost/selling prices:</p>
+                            <ul>${listItems}</ul>
+                            <p>Please ensure all prices are filled in before previewing.</p>
+                        `;
+
+                    $('#successModalLabel').text('Missing Prices');
+                    $('#successModalBody').html(msg);
+                    $('#successModal').modal('show');
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Focus when the modal opens
+            $('#quantityModal')
+                .off('shown.bs.modal.setFocus')
+                .on('shown.bs.modal.setFocus', function () {
+                    $('#quantityInput').focus().select();
+                });
+
+            // Pressing Enter inside the modal triggers Add
+            $(document)
+                .off('keydown.enterToAdd')
+                .on('keydown.enterToAdd', function (e) {
+                    // Only when the modal is open AND the key is inside the modal
+                    if (
+                        (e.key === 'Enter' || e.which === 13 || e.keyCode === 13) &&
+                        $('#quantityModal').hasClass('show') &&
+                        $(e.target).closest('#quantityModal').length &&
+                        !$(e.target).is('textarea')
+                    ) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        confirmQuantity();
+                    }
+                });
+
+
+            // Quantity Modal
+            let pendingItemCode = "";
+            let pendingItemName = "";
+            let pendingProductId = "";
+
+            function addItemToQuote(productId, productCode, name, costPrice, sellingPrice, itemType, baseUOM) {
+                pendingProductId = productId;
+                pendingItemCode = productCode;
+                pendingItemName = name;
+                pendingCost = parseFloat(costPrice) || 0;
+                pendingSelling = parseFloat(sellingPrice) || 0;
+                pendingBaseUOM = baseUOM;
+
+                $('#quantityInput').val('');
+                $('#quantityItemName').text(name);
+                $('#quantityItemCode').text(productCode);
+                $('#quantityItemType').text(itemType);
+                $('#quantityItemUOM').text(baseUOM);
+
+                // Show/hide warning if cost is 0
+                if (pendingCost <= 0) {
+                    $('#zeroCostWarning').removeClass('d-none');
+                } else {
+                    $('#zeroCostWarning').addClass('d-none');
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('quantityModal'));
+                modal.show();
+            }
+
+    // One place to update the tab text
+    function updateLineItemTabCount(count) {
+        $('#lineItems-tab').text(`Line Items (${count})`);
+    }
+
+    // Count rows in the quote items grid (plain table)
+    function refreshLineItemTabCount() {
+        const count = $('#quoteItemsTable tr.line-item-row').length;
+        updateLineItemTabCount(count);
+    }
+
+    // Remove handler
+    $(document).on('click', '.remove-quote-item', function (e) {
+        e.preventDefault();
+        $(this).closest('tr.line-item-row').remove();
+        updateQuoteTotals();
+        refreshLineItemTabCount();
+    });
+
+    // On page load
+    $(function () {
+        refreshLineItemTabCount();
+    });
+function confirmQuantity() {
+                const qty = $('#quantityInput').val();
+                if (!qty || isNaN(qty) || qty <= 0) {
+                    showToast("Please enter a valid quantity.", "danger");
+                    return;
+                }
+
+                const row = `
+                        <tr class="line-item-row">
+                            <td>
+                                <input type="hidden" name="QuoteItems[][ProductId]" value="${pendingProductId}" />
+                                <input type="hidden" name="QuoteItems[][ProductCode]" value="${pendingItemCode}" />
+                                ${pendingItemCode}
+                            </td>
+                            <td>${pendingItemName}</td>
+                            <td class="text-center">${pendingBaseUOM}</td>
+                            <td>
+                                <input type="number" name="QuoteItems[][Qty]"
+                                       class="form-control form-control-sm text-end qty-input"
+                                       value="${qty}" required />
+                            </td>
+                            <td>
+                                <input type="number" name="QuoteItems[][CostPrice]"
+                                       class="form-control form-control-sm text-end cost-input"
+                                       step="any" value="${pendingCost?.toFixed(2) || ''}" />
+                            </td>
+                            <td>
+                                <input type="number" name="QuoteItems[][MarginPercent]"
+                                       class="form-control form-control-sm text-end margin-input"
+                                       step="any" />
+                            </td>
+                            <td>
+                                <input type="number" name="QuoteItems[][SellingPrice]"
+                                       class="form-control form-control-sm text-end selling-input"
+                                       step="any" value="${pendingSelling?.toFixed(2) || ''}" readonly tabindex="-1" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-danger text-center w-100 d-flex justify-content-center align-items-center remove-quote-item"
+                                    style="font-size: 0.8rem;padding: 4px 10px;">x</button>
+                            </td>
+                        </tr>`;
+
+                $('#quoteItemsTable tbody').append(row);
+                updateQuoteTotals();
+
+                refreshLineItemTabCount();
+                const modalEl = document.getElementById('quantityModal');
+                bootstrap.Modal.getInstance(modalEl).hide();
+            }
+
+            // ==============================
+            // Quote Table
+            //===============================
+            $('#stockTable').DataTable({
+                processing: true,
+                serverSide: true,
+                autoWidth: false, // <- important!
+                pageLength: 5,
+                lengthMenu: [5, 10, 25, 50],
+                ajax: {
+                    url: '/ManualQuote/GetFilteredStockItems',
+                    type: 'POST'
+                },
+                columns: [
+                    {
+                        data: 'productCode',
+                        width: '80px',
+                        className: 'small text-muted' // small + muted gray
+                    },
+                    {
+                        data: 'name',
+                        className: 'small' // allow max space
+                    },
+                    {
+                        data: 'itemTypeName',
+                        width: '150px',
+                        className: 'small'
+                    },
+                    {
+                        data: 'baseUOM',
+                        width: '60px',
+                        className: 'small text-center'
+                    },
+                    {
+                        data: null,
+                        render: function (data, type, row) {
+                            const escapedName = row.name.replace(/'/g, "\\'");
+                            const itemType = row.itemTypeName?.replace(/'/g, "\\'") || '';
+                            const baseUOM = row.baseUOM?.replace(/'/g, "\\'") || '';
+                            const cost = row.costPrice ?? 0;
+                            const selling = row.sellingPrice ?? 0;
+
+                            return `
+        <button type="button"
+            class="btn btn-sm theme-button w-100 d-flex justify-content-center align-items-center"
+            onclick="addItemToQuote('${row.productId}', '${row.productCode}', '${escapedName}', ${cost}, ${selling}, '${itemType}', '${baseUOM}')">
+            +
+        </button>`;
+                        },
+                        orderable: false,
+                        searchable: false,
+                        width: '60px',
+                        className: 'text-center'
+                    }
+
+                ]
+
+            });
+
+            // ==============================
+            // Modal Management
+            // ==============================
+
+            // Customer Modal
+            function openCustomerSearchModal() {
+                $('#customerSearchModal').modal('show');
+            }
+
+            function selectCustomer(id, name) {
+                $('#PotentialCustomerId').val(id);
+                $('#PotentialCustomerName').val(name);
+                $('#customerSearchModal').modal('hide');
+            }
+
+            // Contact Modal
+            function openContactSearchModal() {
+                $('#contactSearchModal').modal('show');
+            }
+
+            function selectContact(contactId, contactName) {
+                $('#SelectedContactId').val(contactId);
+                $('#SelectedContactName').val(contactName);
+                $('#contactSearchModal').modal('hide');
+            }
+
+            // Enquiry Modal
+            function openEnquirySearchModal() {
+                $('#enquirySearchModal').modal('show');
+            }
+
+            function selectEnquiry(enquiryId, enquiryNumber) {
+                $('#SelectedEnquiryId').val(enquiryId);
+                $('#SelectedEnquiryNumber').val(enquiryNumber);
+                $('#enquirySearchModal').modal('hide');
+            }
+
+            function openAddEnquiryModal() {
+                const modal = new bootstrap.Modal(document.getElementById('addEnquiryModal'), {
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                modal.show();
+
+                // Auto-focus the first input
+                setTimeout(() => {
+                    document.getElementById('newEnquiryNumber').focus();
+                }, 200);
+            }
+
+            // ==============================
+            // DataTables Initialization
+            // ==============================
+
+            $(document).ready(function () {
+                // Set Header
+                if (isEditing) {
+                    const revPart = quoteRevision ? ` [Revision: ${quoteRevision}]` : '';
+                    $('#quoteHeader').html(`View / Edit Existing Quote Number: <strong>${quoteNo}</strong>${revPart}`);
+                } else {
+                    $('#quoteHeader').text('Generate New Manual Quote');
+                }
+
+                // Customer Table
+                $('#customerTable').DataTable({
+                    responsive: true,
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50, 100],
+                    ordering: true,
+                    searching: true,
+                    paging: true,
+                    language: {
+                        search: "Filter Customers:"
+                    },
+                    columnDefs: [
+                        { targets: [0], visible: false }, // hide ID
+                        { targets: [2], width: "100px", className: "text-center" } // Action column
+                    ]
+                });
+
+                // Contact Table
+                $('#contactTable').DataTable({
+                    responsive: true,
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50, 100],
+                    ordering: true,
+                    searching: true,
+                    paging: true,
+                    language: {
+                        search: "Filter Contacts:"
+                    },
+                    columnDefs: [
+                        { targets: [0], visible: false }, // hide ContactId
+                        { targets: [5], width: "100px", className: "text-center" } // Action column
+                    ]
+                });
+
+                // Enquiry Table
+                $('#enquiryTable').DataTable({
+                    responsive: true,
+                    pageLength: 10,
+                    lengthMenu: [5, 10, 25, 50, 100],
+                    ordering: true,
+                    searching: true,
+                    paging: true,
+                    language: {
+                        search: "Filter Enquiries:"
+                    },
+                    columnDefs: [
+                        { targets: [0], visible: false }, // hide ID
+                        { targets: [3], width: "100px", className: "text-center" } // Action column
+                    ]
+                });
+
+                $('#addEnquiryForm').on('submit', function (e) {
+                    e.preventDefault();
+
+                    const enquiryData = {
+                        EnquiryNumber: $('#newEnquiryNumber').val(),
+                        CustomerId: $('#newCustomerId').val(),
+                        Notes: $('#newNotes').val()
+                    };
+
+                    $.post('/ManualQuote/AddEnquiry', enquiryData)
+                        .done(function (newItem) {
+                            $('#addEnquiryModal').modal('hide');
+                            $('#enquirySearchModal').modal('hide');
+
+                            // Only set enquiry fields – do NOT trigger full quote form submission
+                            $('#SelectedEnquiryId').val(newItem.EnquiryId);
+                            $('#SelectedEnquiryNumber').val(newItem.EnquiryNumber);
+
+                            showToast("New enquiry added and selected.", "success");
+                        })
+                        .fail(function () {
+                            showToast("Failed to save new enquiry.", "danger");
+                        })
+                        .always(function () {
+                            hideSpinner(); // Always stop the spinner
+                        });
+                });
+
+            });
+
+            // ==============================
+            // Validate
+            // ==============================
+            $('form').on('submit', function (e) {
+                const missingFieldsByGroup = {};
+
+                // Mapping input IDs to Accordion Titles
+                const fieldToAccordion = {
+                    "ImportDate": "Quote Information",
+                    "QuantityOfUnits": "Quote Information",
+                    "DueDate": "Quote Information",
+                    "DesignerId": "Quote Information",
+                    "ImportedPMRJBFileRef": "Quote Information",
+
+                    "SiteName": "Site Details",
+                    "StandNumber": "Site Details",
+                    "ProjectName": "Site Details",
+                    "UnitBlockNumber": "Site Details",
+                    "UnitBlockType": "Site Details",
+
+                    "PotentialCustomer": "Sales Information",
+                    "SalesRepId": "Sales Information",
+                    "ContactPerson": "Sales Information",
+                    "EnquiryNumber": "Sales Information",
+
+                    "RoofPitch": "Design Details",
+                    "MaxBattenCenters": "Design Details",
+                    "RoofOverhang": "Design Details",
+                    "MaxTrussCenters": "Design Details",
+                    "RoofGableOverhang": "Design Details",
+                    "FloorArea": "Design Details",
+                    "RoofCovering": "Design Details",
+                    "RoofArea": "Design Details",
+
+                    "QuoteNotes": "Quote Notes",
+                    "SalesNotes": "Sales Notes",
+
+                    "ShipToStreet1": "Addresses",
+                    "ShipToStreet2": "Addresses",
+                    "ShipToStreet3": "Addresses",
+                    "ShipToCity": "Addresses",
+                    "ShipToState": "Addresses",
+                    "ShipToZip": "Addresses",
+                    "ShipToCountry": "Addresses"
+                };
+
+                $('.required-field').each(function () {
+                    const val = $(this).val();
+                    const label = $("label[for='" + this.id + "']").text().trim();
+                    const group = fieldToAccordion[this.id] || "Other";
+
+                    if (!val || val.trim() === "") {
+                        if (!missingFieldsByGroup[group]) {
+                            missingFieldsByGroup[group] = [];
+                        }
+                        missingFieldsByGroup[group].push(label || this.name);
+                    }
+                });
+
+                if (Object.keys(missingFieldsByGroup).length > 0) {
+                    e.preventDefault();
+
+                    const list = $('#missingFieldsList');
+                    list.empty();
+
+                    for (const group in missingFieldsByGroup) {
+                        list.append(`<li class="fw-bold">${group}<ul class="mb-0">`);
+
+                        missingFieldsByGroup[group].forEach(f => {
+                            list.append(`<li class="ms-3 text-muted">${f}</li>`);
+                        });
+
+                        list.append(`</ul></li>`);
+
+                    }
+
+                    const modal = new bootstrap.Modal(document.getElementById('validationModal'));
+                    modal.show();
+                }
+                else {
+                    const lineItems = [];
+
+                    $('#quoteItemsTable tbody tr').each(function () {
+                        const productId = $(this).find('input[name*="ProductId"]').val();
+                        const qty = $(this).find('input[name*="Qty"]').val();
+                        const costPrice = $(this).find('input[name*="CostPrice"]').val();
+                        const margin = $(this).find('input[name*="MarginPercent"]').val();
+                        const selling = $(this).find('input[name*="SellingPrice"]').val();
+
+                        if (productId && qty) {
+                            lineItems.push({
+                                ProductId: parseInt(productId) || 0,
+                                Qty: parseFloat(qty),
+                                CostPrice: parseFloat(costPrice),
+                                MarginPercent: parseFloat(margin),
+                                SellingPrice: parseFloat(selling)
+                            });
+                        }
+                    });
+
+                    $('#LineItemsJson').val(JSON.stringify(lineItems));
+                    showSpinner("Processing...");
+                    this.submit();
+                }
+            });
+
+            // ==============================
+            // Dummy Test Data
+            // ==============================
+            function fillDummyData() {
+                $('#QuantityOfUnits').val(42);
+                $('#DueDate').val(new Date().toISOString().split('T')[0]);
+                $('#DesignerId').val($('#DesignerId option:eq(1)').val());
+                $('#ImportedPMRJBFileRef').val("TestFile.json");
+                $('#SiteName').val("Test Site Area");
+                $('#StandNumber').val("12345");
+                $('#ProjectName').val("Test Project");
+                $('#UnitBlockNumber').val("B12");
+                $('#UnitBlockType').val("Duplex");
+
+                $('#PotentialCustomerId').val("1");
+                $('#PotentialCustomerName').val("Acme Construction");
+
+                $('#SalesRepId').val($('#SalesRepId option:eq(1)').val());
+                $('#SelectedContactId').val("10");
+                $('#SelectedContactName').val("John Tester");
+                $('#SelectedEnquiryId').val("1001");
+                $('#SelectedEnquiryNumber').val("ENQ-2025-001");
+
+                $('#RoofPitch').val("25");
+                $('#MaxBattenCenters').val("600");
+                $('#RoofOverhang').val("350");
+                $('#MaxTrustCenters').val("900");
+                $('#RoofGableOverhang').val("300");
+                $('#FloorArea').val("240");
+                $('#RoofCovering').val("Metal");
+                $('#RoofArea').val("200");
+
+                $('#ShipToStreet1').val("123 Main Rd");
+                $('#ShipToStreet2').val("Unit 4");
+                $('#ShipToStreet3').val("Industrial Park");
+                $('#ShipToCity').val("George");
+                $('#ShipToState').val("Western Cape");
+                $('#ShipToPostalCode').val("6530");
+                $('#ShipToCountry').val("South Africa");
+
+                $('#QuoteNotes').val("This is a sample quote for testing.");
+                $('#SalesNotes').val("Internal use only. Not for distribution.");
+
+                const stockAccordion = document.getElementById('collapseStockItems');
+                const bsCollapse = new bootstrap.Collapse(stockAccordion, { toggle: true });
+                //showToast("Dummy / Test Data Loaded.<br /><br />Just Add Stock Line Items!", "success");
+            }
+
+            // ==============================
+            // Load Existing Line Items
+            // ==============================
+            $(document).ready(function () {
+                if ($('#LineItemsJson').length && $('#LineItemsJson').val()) {
+                    try {
+                        const items = JSON.parse($('#LineItemsJson').val());
+                        items.forEach(item => {
+                            const row = `
+                    <tr class="line-item-row">
+                        <td>
+                            <input type="hidden" name="QuoteItems[][ProductId]" value="${item.ProductId}" />
+                            <input type="hidden" name="QuoteItems[][ProductCode]" value="${item.ProductCode}" />
+                            ${item.ProductCode}
+                        </td>
+                        <td>${item.ProductDescription || ''}</td>
+                        <td class="text-center">${item.BaseUOM || ''}</td>
+                        <td><input type="number" name="QuoteItems[][Qty]" class="form-control form-control-sm text-end qty-input" value="${item.Qty}" /></td>
+                        <td><input type="number" name="QuoteItems[][CostPrice]" class="form-control form-control-sm text-end cost-input" value="${item.CostPrice}" /></td>
+                        <td><input type="number" name="QuoteItems[][MarginPercent]" class="form-control form-control-sm text-end margin-input" value="${item.MarginPercent}" /></td>
+                        <td><input type="number" name="QuoteItems[][SellingPrice]" class="form-control form-control-sm text-end selling-input" value="${item.SellingPrice}" readonly /></td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger text-center w-100 d-flex justify-content-center align-items-center remove-quote-item"
+                                    style="font-size: 0.8rem;padding: 4px 10px;">x</button>
+                        </td>
+                    </tr>`;
+                            $('#quoteItemsTable tbody').append(row);
+                        });
+
+                        //// Recalculate all row selling prices AFTER rendering
+                        //$('#quoteItemsTable tbody tr').each(function () {
+                        //    calculateRowSellingPrice($(this));
+                        //});
+
+                        updateQuoteTotals();
+                    } catch (e) {
+                        console.error("Error parsing LineItemsJson:", e);
+                    }
+                }
+            });
+
+            // ==============================
+            // Calculate Quote
+            // ==============================
+            function calculateRowSellingPrice(row) {
+                const cost = parseFloat(row.find('.cost-input').val()) || 0;
+                const margin = parseFloat(row.find('.margin-input').val()) || 0;
+                const selling = cost * (1 + (margin / 100));
+                row.find('.selling-input').val(selling.toFixed(2));
+            }
+
+            function updateQuoteTotals() {
+                let totalCost = 0;
+                let totalSelling = 0;
+
+                $('#quoteItemsTable tbody tr').each(function () {
+                    const row = $(this);
+                    const qty = parseFloat(row.find('.qty-input').val()) || 0;
+                    const cost = parseFloat(row.find('.cost-input').val()) || 0;
+                    const selling = parseFloat(row.find('.selling-input').val()) || 0;
+
+                    totalCost += qty * cost;
+                    totalSelling += qty * selling;
+                });
+
+                const profit = totalSelling - totalCost;
+                const markup = totalCost > 0 ? (profit / totalCost) * 100 : 0;
+
+                $('#totalCost').text('R ' + totalCost.toLocaleString('en-ZA', { minimumFractionDigits: 2 }));
+                $('#totalSelling').text('R ' + totalSelling.toLocaleString('en-ZA', { minimumFractionDigits: 2 }));
+                $('#totalProfit').text('R ' + profit.toLocaleString('en-ZA', { minimumFractionDigits: 2 }));
+                $('#totalMarkup').text(markup.toFixed(1) + '%');
+            }
+
+            // Hook up recalculation on input
+            $(document).on('input', '.qty-input, .cost-input, .margin-input', function () {
+                const row = $(this).closest('tr');
+                calculateRowSellingPrice(row);
+                updateQuoteTotals();
+            });
+// Trigger initial calc (optional)
+            $(document).ready(updateQuoteTotals);
+
+            // ==============================
+            // Quote Image Upload + Gallery Refresh
+            // ==============================
+    function uploadQuoteImages() {
+        const form = document.getElementById('imageUploadForm');
+
+        // Safety check
+        if (!form || form.tagName !== 'FORM') {
+            console.error("Upload failed: #imageUploadForm is missing or not a <form>.");
+            alert("Upload form not found or invalid. Please reload the page.");
+            return;
+        }
+
+        const formData = new FormData(form);
+        const spinner = document.getElementById('uploadSpinner');
+        spinner.style.display = 'block';
+
+        fetch('/Image/UploadQuoteImages', {
+            method: 'POST',
+            body: formData
+        })
+            .then(resp => {
+                if (!resp.ok) throw new Error("Upload failed");
+                return resp.text();
+            })
+            .then(() => {
+                spinner.style.display = 'none';
+                refreshQuoteImagesGallery();
+            })
+            .catch(err => {
+                spinner.style.display = 'none';
+                alert("Upload error: " + err.message);
+            });
+    }
+
+    function refreshQuoteImagesGallery() {
+        const quoteId = '@Model.Id';
+        fetch(`/Image/GetQuoteImagesPartial/${quoteId}`)
+            .then(resp => resp.text())
+            .then(html => {
+                document.getElementById('quoteImagesGallery').innerHTML = html;
+            });
+    }
+
+    // Ensure this code runs AFTER the tab is visible
+    document.addEventListener("DOMContentLoaded", function () {
+        const observer = new MutationObserver(() => {
+            const uploadForm = document.querySelector("#imageUploadForm");
+            const uploadBtn = document.querySelector("#uploadBtn");
+
+            if (uploadForm && uploadBtn && !uploadBtn.dataset.bound) {
+                uploadBtn.dataset.bound = "true"; // prevent rebinding
+
+                console.log("✅ Binding upload handler");
+
+                uploadBtn.addEventListener("click", function () {
+                    if (!(uploadForm instanceof HTMLFormElement)) {
+                        alert("Upload form not found or invalid. Please reload the page.");
+                        return;
+                    }
+
+                    const formData = new FormData(uploadForm);
+                    const spinner = document.getElementById("uploadSpinner");
+                    if (spinner) spinner.style.display = "inline";
+
+                    fetch("/Image/UploadQuoteImages", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(response => response.ok ? response.text() : Promise.reject(response.statusText))
+                        .then(html => {
+                            document.getElementById("quoteImagesGallery").innerHTML = html;
+                            if (spinner) spinner.style.display = "none";
+                            showToast("Upload complete!", "success");
+                        })
+                        .catch(error => {
+                            if (spinner) spinner.style.display = "none";
+                            console.error("Upload failed:", error);
+                            showToast("Upload failed: " + error, "danger");
+                        });
+                });
+
+                // stop observing once form is bound
+                observer.disconnect();
+            }
+        });
+
+        // Observe DOM for changes in tab pane content
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+
+    function initImageUploadHandlers() {
+        const uploadBtn = document.getElementById("uploadBtn");
+        const uploadForm = document.getElementById("imageUploadForm");
+
+        if (!uploadBtn || !uploadForm) {
+            console.warn("Upload form or button not found in DOM yet.");
+            return;
+        }
+
+        // Prevent duplicate bindings
+        if (uploadBtn.dataset.bound === "true") return;
+        uploadBtn.dataset.bound = "true";
+
+        uploadBtn.addEventListener("click", function () {
+            if (!(uploadForm instanceof HTMLFormElement)) {
+                alert("Upload form not found or invalid. Please reload the page.");
+                return;
+            }
+
+            const formData = new FormData(uploadForm);
+            const spinner = document.getElementById("uploadSpinner");
+            if (spinner) spinner.style.display = "inline";
+
+            fetch("/Image/UploadQuoteImages", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.ok ? response.text() : Promise.reject(response.statusText))
+                .then(html => {
+                    document.getElementById("quoteImagesGallery").innerHTML = html;
+                    if (spinner) spinner.style.display = "none";
+                    showToast("Upload complete!", "success");
+                })
+                .catch(error => {
+                    if (spinner) spinner.style.display = "none";
+                    console.error("Upload failed:", error);
+                    showToast("Upload failed: " + error, "danger");
+                });
+        });
+    }
+</script>
+

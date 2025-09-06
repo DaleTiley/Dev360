@@ -1,0 +1,213 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Users";
+}
+@model IEnumerable<MillenniumWebFixed.Models.AppUser>
+
+<style>
+    .user-table {
+        font-size: 0.75rem;
+    }
+
+        .user-table th,
+        .user-table td {
+            padding: 0.35rem 0.5rem !important;
+            vertical-align: middle;
+        }
+
+        .user-table .btn {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+    .badge-active {
+        background-color: #198754;
+    }
+
+    .badge-inactive {
+        background-color: #dc3545;
+    }
+    .status-badge {
+        display: block; /* ensures it fills full width */
+        text-align: center;
+        font-size: 0.75rem;
+        padding: 6px 0;
+        border-radius: 0.3rem;
+        font-weight:normal!important;
+    }
+</style>
+
+<h5 class="mb-3">User Management</h5>
+
+<p>
+    <a href="@Url.Action("AddUser", "Admin")" class="btn btn-sm btn-dark">Add New User</a>
+</p>
+
+<div class="container mt-0" style="font-size: 0.75rem;">
+    <table id="usersTable" class="table table-sm table-bordered table-hover align-middle user-table">
+        <thead class="table-dark text-center">
+            <tr>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th class="text-center">User Level</th>
+                <th class="text-center">Designer</th>
+                <th class="text-center">Sales</th>
+                <th class="text-center">Estimator</th>
+                <th class="text-center">Approver</th>
+                <th class="text-center">Status</th>
+                <th class="text-center">Last Login</th>
+                <th class="text-center" style="width: 100px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    @*<td class="text-center">@user.Id</td>*@
+                    <td>@user.Username</td>
+                    <td>@user.FullName</td>
+                    <td>@user.Email</td>
+                    <td class="text-center">@user.UserLevel</td>
+                    <td class="text-center">
+                        @Html.Raw(user.IsDesigner ? "<i class='fa-solid fa-check text-success'></i>" : "<i class='fa-solid fa-minus text-muted'></i>")
+                    </td>
+                    <td class="text-center">
+                        @Html.Raw(user.IsSalesRep ? "<i class='fa-solid fa-check text-success'></i>" : "<i class='fa-solid fa-minus text-muted'></i>")
+                    </td>
+                    <td class="text-center">
+                        @Html.Raw(user.IsEstimator ? "<i class='fa-solid fa-check text-success'></i>" : "<i class='fa-solid fa-minus text-muted'></i>")
+                    </td>
+                    <td class="text-center">
+                        @Html.Raw(user.IsQuoteApprover ? "<i class='fa-solid fa-check text-success'></i>" : "<i class='fa-solid fa-minus text-muted'></i>")
+                    </td>
+                    <td class="text-center">
+                        <span class="badge @((user.IsActive) ? "badge-active status-badge" : "badge-inactive status-badge")">
+                            @(user.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        @(user.LastLoginDate?.ToString("yyyy-MM-dd HH:mm") ?? "-")
+                    </td>
+                    <td class="text-center">
+                        @if (user.Username.ToLower() != "admin")
+                        {
+                            <a href="@Url.Action("EditUser", "Admin", new { id = user.Id })"
+                               class="btn btn-dark btn-sm open-edit-modal"
+                               data-id="@user.Id">Edit</a>
+                        }
+                        else
+                        {
+                            <span class="btn btn-sm btn-secondary disabled">Edit</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow-sm border-0">
+                <div class="modal-header py-1 px-3" style="background-color: #001C2B; color: white;">
+                    <h5 class="modal-title mb-0" id="editUserModalLabel">Edit User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body small" id="editUserModalBody">
+                    <div class="text-center py-4">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DataTables + Edit Modal Scripts -->
+    @section Scripts {
+        <!-- DataTables JS
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>-->
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Initialize DataTables
+                $('#usersTable').DataTable({
+                    responsive: true,
+                    order: [[0, 'asc']],
+                    pageLength: 10,
+                    columnDefs: [
+                        { targets: [3, 4, 5, 6, 7, 8, 9], className: 'text-center' }, // center level, role flags, status, last login
+                        { targets: -1, orderable: false }                       // actions
+                    ]
+                });
+
+                const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+
+                document.querySelectorAll('.open-edit-modal').forEach(btn => {
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+
+                        const userId = this.getAttribute('data-id');
+                        const modalBody = document.getElementById('editUserModalBody');
+                        showSpinner("Loading user...");
+
+                        fetch(`/Admin/EditUserModal/${userId}`)
+                            .then(response => response.text())
+                            .then(html => {
+                                modalBody.innerHTML = html;
+                                hideSpinner();
+                                modal.show();
+
+                                // Attach submit listener after content is loaded
+                                setTimeout(() => {
+                                    const form = document.getElementById("editUserForm");
+                                    if (form) {
+                                        form.addEventListener("submit", function (ev) {
+                                            ev.preventDefault();
+                                            const formData = new FormData(form);
+
+                                            fetch(form.action, {
+                                                method: "POST",
+                                                body: formData
+                                            })
+                                                .then(response => response.json())
+                                                .then(result => {
+                                                    if (result.success) {
+                                                        modal.hide();
+                                                        showToast("User updated successfully!", "success");
+                                                        setTimeout(() => location.reload(), 1000); // delay reload
+                                                    } else {
+                                                        showToast("Something went wrong.", "danger");
+                                                    }
+                                                })
+                                                .catch(() => {
+                                                    showToast("Error during update", "danger");
+                                                });
+                                        });
+                                    }
+                                }, 300);
+                            })
+                            .catch(err => {
+                                modalBody.innerHTML = "<div class='alert alert-danger'>Failed to load form.</div>";
+                                hideSpinner();
+                                modal.show();
+                            });
+                    });
+                });
+            });
+
+            // Extend toast display duration globally
+            function showToast(message, type = "success") {
+                const toastEl = document.getElementById('toastMessage');
+                const toastBody = document.getElementById('toastBody');
+
+                toastEl.classList.remove('bg-success', 'bg-danger');
+                toastEl.classList.add(type === 'danger' ? 'bg-danger' : 'bg-success');
+                toastBody.innerText = message;
+
+                const toast = new bootstrap.Toast(toastEl, { delay: 6000 }); // 6 sec duration
+                toast.show();
+            }
+        </script>
+    }

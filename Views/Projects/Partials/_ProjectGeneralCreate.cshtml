@@ -1,0 +1,198 @@
+﻿@model MillenniumWebFixed.Models.ProjectCreateVm
+<style>
+  .btn-clear{background:#fff;color:#dc3545;border:1px solid #dc3545}
+  .btn-clear:hover,.btn-clear:focus{background:#dc3545;color:#fff}
+</style>
+
+@using (Html.BeginForm(
+    "Create","Projects", FormMethod.Post,
+    new {
+        enctype = "multipart/form-data",
+        id = "projectCreateForm",
+        data_check_code_url = Url.Action("CheckProjectCode","Projects")
+    }))
+{
+    @Html.AntiForgeryToken()
+
+    @* Hidden IDs used by JS *@
+    @Html.HiddenFor(m => m.ClientId,  new { id = "ClientId" })
+    @Html.HiddenFor(m => m.ContactId, new { id = "ContactId" })
+
+    <div class="compact-form">
+        <div class="row g-3">
+
+            <!-- 1) Core / Customer -->
+            <div class="col-md-4">
+                @Html.LabelFor(m => m.ProjectCode)
+                @Html.TextBoxFor(m => m.ProjectCode, new
+                {
+                    @class = "form-control",
+                    id = "ProjectCode",
+                    placeholder = "Auto generated on Save",
+                    @readonly = "readonly",
+                    data_skip_required = "1",   // <-- our JS skip flag
+                    data_val = "false"          // <-- disables unobtrusive validation on this input
+                })
+                @Html.ValidationMessageFor(m => m.ProjectCode)
+            </div>
+
+            <div class="col-md-8">
+                @Html.LabelFor(m => m.ClientName)
+                <div class="input-group input-group-sm">
+                    @Html.TextBoxFor(m => m.ClientName,
+                      new { @class = "form-control", @readonly = "readonly", id = "ClientName", placeholder = "Select Customer" })
+                    <button type="button" class="btn theme-button" onclick="openCustomerSearchModal()"><i class="fas fa-search"></i></button>
+                    <button type="button" class="btn btn-clear" onclick="clearCustomer()"><i class="fas fa-times"></i></button>
+                </div>
+                @Html.ValidationMessageFor(m => m.ClientName)
+            </div>
+
+            <!-- 2) Contact -->
+            <div class="col-md-6">
+                @Html.LabelFor(m => m.ContactName)
+                <div class="input-group input-group-sm">
+                    @Html.TextBoxFor(m => m.ContactName,
+                      new { @class = "form-control js-required", @readonly = "readonly", id = "ContactName", placeholder = "Select Contact" })
+                    <button type="button" class="btn theme-button" onclick="openContactSearchModal()"><i class="fas fa-search"></i></button>
+                    <button type="button" class="btn btn-clear" onclick="clearContact()"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.ContactPhone)
+                @Html.TextBoxFor(m => m.ContactPhone, new { @class = "form-control js-required", id = "ContactPhone", autocomplete = "tel" })
+            </div>
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.ContactEmail)
+                @Html.TextBoxFor(m => m.ContactEmail, new { @class = "form-control js-required", id = "ContactEmail", type = "email", autocomplete = "email" })
+            </div>
+
+            <!-- 3) Site / Address -->
+            <div class="col-md-6">
+                @Html.LabelFor(m => m.SiteName)
+                @Html.TextBoxFor(m => m.SiteName, new { @class = "form-control" })
+            </div>
+
+            <div class="col-md-6">
+                @Html.LabelFor(m => m.StreetAddress)
+                @Html.TextBoxFor(m => m.StreetAddress, new { @class = "form-control" })
+            </div>
+
+            <div class="col-md-6">
+                @Html.LabelFor(m => m.SiteAddress1)
+                @Html.TextBoxFor(m => m.SiteAddress1, new { @class = "form-control" })
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(m => m.SiteAddress2)
+                @Html.TextBoxFor(m => m.SiteAddress2, new { @class = "form-control" })
+            </div>
+
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.SiteCity)
+                @Html.TextBoxFor(m => m.SiteCity, new { @class = "form-control" })
+            </div>
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.SiteProvince)
+                @Html.TextBoxFor(m => m.SiteProvince, new { @class = "form-control" })
+            </div>
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.SitePostcode)
+                @Html.TextBoxFor(m => m.SitePostcode, new { @class = "form-control" })
+            </div>
+
+            <!-- 4) Legal / ERP -->
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.ERPNumber)
+                @Html.TextBoxFor(m => m.ERPNumber, new { @class = "form-control" })
+            </div>
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.Township)
+                @Html.TextBoxFor(m => m.Township, new { @class = "form-control" })
+            </div>
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.PortionNumber)
+                @Html.TextBoxFor(m => m.PortionNumber, new { @class = "form-control" })
+            </div>
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.StandNumber)
+                @Html.TextBoxFor(m => m.StandNumber, new { @class = "form-control" })
+            </div>
+
+            <!-- 5) People / Site contact -->
+            <div class="col-md-4">
+                <label class="form-label small">Sales Representative</label>
+                @Html.DropDownListFor(m => m.SalesRepId,
+                    new SelectList(Model.SalesRepOptions, "Value", "Text", Model.SalesRepId),
+                    "---",
+                    new { @class = "form-select form-select-sm", id = "SalesRepId" })
+            </div>
+            <div class="col-md-4">
+                @Html.LabelFor(m => m.SiteContactName)
+                @Html.TextBoxFor(m => m.SiteContactName, new { @class = "form-control" })
+            </div>
+            <div class="col-md-4">
+                @Html.LabelFor(m => m.SiteContactPhone)
+                @Html.TextBoxFor(m => m.SiteContactPhone, new { @class = "form-control", autocomplete = "tel" })
+            </div>
+
+            <!-- 6) Links / Rentals -->
+            <div class="col-md-6">
+                @Html.LabelFor(m => m.GoogleMapUrl, new { @class = "form-label small" })
+                <div class="input-group input-group-sm">
+                    @Html.TextBoxFor(m => m.GoogleMapUrl, new { @class = "form-control", id = "GoogleMapUrl", placeholder = "https://…" })
+                    <button class="btn btn-outline-secondary" type="button" id="gm-generate" title="Build from address">
+                        <i class="fa fa-magic"></i>
+                    </button>
+                    <a class="btn btn-outline-primary" id="gm-open" target="_blank" rel="noopener" title="Open in Google Maps">
+                        <i class="fa fa-map-marker-alt"></i>
+                    </a>
+                </div>
+                <div class="form-text">Click the wand to build a link from the address. Click the pin to open.</div>
+            </div>
+            <div class="col-md-6">
+                @Html.LabelFor(m => m.SharePointUrl)
+                @Html.TextBoxFor(m => m.SharePointUrl, new { @class = "form-control", placeholder = "https://…" })
+            </div>
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.SiteRentals)
+                @Html.TextBoxFor(m => m.SiteRentals, new { @class = "form-control", placeholder = "Yes/No or details" })
+            </div>
+
+            <!-- 7) CRM-lite -->
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.CrmStage)
+                @Html.TextBoxFor(m => m.CrmStage, new { @class = "form-control", list = "crmStages" })
+                <datalist id="crmStages">
+                    <option>Lead</option>
+                    <option>Quoted</option>
+                    <option>Won</option>
+                    <option>Lost</option>
+                </datalist>
+            </div>
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.CrmFollowUpDate)
+                @Html.TextBoxFor(m => m.CrmFollowUpDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+            </div>
+            <div class="col-md-3">
+                @Html.LabelFor(m => m.CrmNextAction)
+                @Html.TextBoxFor(m => m.CrmNextAction, new { @class = "form-control" })
+            </div>
+
+            <!-- 8) Notes / Files -->
+            <div class="col-12">
+                @Html.LabelFor(m => m.Notes)
+                @Html.TextAreaFor(m => m.Notes, new { @class = "form-control", rows = 3 })
+            </div>
+
+            <div class="col-12">
+                @Html.LabelFor(m => m.Files, "Attach plans or documents (optional)")
+                <input type="file" name="Files" multiple class="form-control" />
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn theme-button">Save Project</button>
+                <a href="@Url.Action("Index","Projects")" class="btn btn-secondary">Cancel</a>
+            </div>
+
+        </div>
+    </div>
+}

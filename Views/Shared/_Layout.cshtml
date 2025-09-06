@@ -1,0 +1,326 @@
+@{
+    Layout = null;
+}
+
+@using System.Globalization
+@using MillenniumWebFixed.Helpers
+
+@{
+    var rawName = Request.IsAuthenticated
+        ? (string.IsNullOrWhiteSpace(User.GetFullName())
+            ? User.Identity.Name
+            : User.GetFullName())
+        : "Guest";
+
+    var displayName = CultureInfo.CurrentCulture.TextInfo
+        .ToTitleCase((rawName ?? "Guest").Trim().ToLower());
+
+    var userLevel = User.GetUserLevel();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - Millennium Roofing</title>
+
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="~/Content/site.css" rel="stylesheet" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+</head>
+
+<body class="@ViewBag.BodyClass">
+    <div class="d-flex flex-column min-vh-100">
+        @{
+            var isAuthenticated = Request.IsAuthenticated;
+            var username = isAuthenticated ? displayName : "Guest";
+
+            // Avoid redirect loops on the login page
+            if (!isAuthenticated && !Request.RawUrl.ToLowerInvariant().Contains("/account/login"))
+            {
+                Response.Redirect(Url.Action("Login", "Account"));
+                return; // stop rendering
+            }
+        }
+
+        @Html.Partial("_SpinnerOverlay")
+        @Html.Partial("_ToastMessage")
+
+        <!-- Top Nav -->
+        <nav class="navbar navbar-expand-lg px-4 py-2 navbar-dark">
+            <div class="container-fluid d-flex align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="toggle-button" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span class="navbar-text full-title d-none d-md-inline">Millennium Operations [@displayName]</span>
+                    <span class="navbar-text short-title d-inline d-md-none">Millennium</span>
+                </div>
+                <div class="navbar-right ms-auto">
+                    <img class="navbar-logo" src="https://mroofing.co.za/wp-content/uploads/2023/06/Logo.png" alt="Millennium Roofing Logo">
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sidebar + Main Content Row -->
+        <div class="d-flex flex-grow-1">
+            <!-- Sidebar -->
+            <div id="sidebarMenu" class="sidebar">
+                <!-- Dashboard -->
+                <a href="/Home/Index" class="@(Request.RawUrl == "/" || Request.RawUrl.ToLower().Contains("/home") ? "active" : "")">
+                    <i class="fas fa-home me-2"></i> Dashboard
+                </a>
+                <hr class="text-white my-2" />
+
+                <!-- Projects -->
+                <a href="/Projects/Create" class="@(Request.RawUrl.ToLower().Contains("/projects/create") ? "active" : "")">
+                    <i class="fas fa-folder-plus me-2"></i> Create Project
+                </a>
+
+                @*<a href="/Import/ListExcel" class="@(Request.RawUrl.ToLower().Contains("/import/listexcel") ? "active" : "")">
+        <i class="fas fa-clipboard-list me-2"></i> Project List
+        </a>*@
+
+                <a href="/Projects/Index" class="@(Request.RawUrl.ToLower().Contains("/projects/index") ? "active" : "")">
+                    <i class="fas fa-clipboard-list me-2"></i> Project List
+                </a>
+
+                <a href="/Import/ImportExcel" class="@(Request.RawUrl.ToLower().Contains("/import/importexcel") ? "active" : "")">
+                    <i class="fas fa-file-import me-2"></i> Import Project
+                </a>
+
+                <!-- Manual Quote -->
+                <hr class="text-white my-2" />
+                <a href="@Url.Action("ManualQuote_Tabs", "ManualQuote")" class="@(Request.RawUrl.ToLower().Contains("/manualquote/manualquote_tabs") ? "active" : "")">
+                    <i class="fas fa-file-alt me-2"></i> Manual Quote
+                </a>
+
+                <a href="@Url.Action("ListManualQuotes", "ManualQuote")" class="@(Request.RawUrl.ToLower().Contains("/manualquote/listmanualquotes") ? "active" : "")">
+                    <i class="fas fa-list me-2"></i> Quote List
+                </a>
+
+                @*<a href="@Url.Action("ListManualQuotesGrouped", "ManualQuote")" class="@(Request.RawUrl.ToLower().Contains("/manualquote/listmanualquotes") ? "active" : "")">
+        <i class="fas fa-list me-2"></i> Quote List (POC)
+        </a>*@
+
+                <hr class="text-white my-2" />
+                <a href="/Order/ListOrders" class="@(Request.RawUrl.ToLower().Contains("/order/listorders") ? "active" : "")">
+                    <i class="fas fa-shopping-cart me-2"></i> Orders
+                </a>
+
+                <a href="/Tender/ListTenders" class="@(Request.RawUrl.ToLower().Contains("/tender/listtenders") ? "active" : "")">
+                    <i class="fas fa-briefcase me-2"></i> Tenders
+                </a>
+
+                <!-- Quotes -->
+                <a href="/Quote/Index" class="@(Request.RawUrl.ToLower().Contains("/quote/index") ? "active" : "")">
+                    <i class="fas fa-file-invoice-dollar me-2"></i> Project Quotes
+                </a>
+
+                <hr class="text-white my-2" />
+
+                <!-- Stock -->
+                <a href="/Stock/Index" class="@(Request.RawUrl.ToLower().Contains("/stock") ? "active" : "")">
+                    <i class="fas fa-boxes me-2"></i> Stock
+                </a>
+
+                <!-- Admin -->
+                <hr class="text-white my-2" />
+                @if (userLevel.ToLower() == "admin")
+                {
+                    <a href="/Admin/Index" class="@(Request.RawUrl.ToLower().Contains("/admin") ? "active" : "")">
+                        <i class="fas fa-user-cog me-2"></i> Admin
+                    </a>
+                }
+
+                <!-- Logout -->
+                <hr class="text-white my-2" />
+                <a href="/Account/Logout">
+                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                </a>
+            </div>
+
+
+            <!-- Main Content -->
+            <div class="main-content container py-3">
+                @RenderBody()
+            </div>
+        </div>
+
+        <div class="dashboard-logo-wrapper">
+            <img src="https://mroofing.co.za/wp-content/uploads/2023/06/Isolation-roof.png" alt="Logo" class="dashboard-logo" />
+        </div>
+
+        <footer id="bottom">
+            &copy;Millennium Roofing 2025
+        </footer>
+    </div>
+
+    <!-- Core libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="/signalr/hubs"></script>
+
+    <!-- Buttons For Table Export   -->
+    <!-- DataTables Buttons + deps for Excel/PDF/Print -->
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+    <!-- Datatables Row Group-->
+    <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.4.1/css/rowGroup.dataTables.min.css" />
+    <script src="https://cdn.datatables.net/rowgroup/1.4.1/js/dataTables.rowGroup.min.js"></script>
+
+    <!-- ✅ Move site.js ABOVE RenderSection -->
+    <script src="~/Scripts/site.js"></script>
+
+    @RenderSection("Scripts", required: false)
+    @RenderSection("Modals", required: false)
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebarMenu');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll("#sidebarMenu a[href]").forEach(link => {
+                link.addEventListener("click", function () {
+                    if (this.href !== window.location.href) {
+                        showSpinner("Navigating...");
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        (() => {
+            // Utility: clamp value
+            const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+            function enableDraggable(modalEl) {
+                // Allow opt-out: <div class="modal" data-draggable="false">
+                if (modalEl?.dataset?.draggable === 'false') return;
+
+                const dialog = modalEl.querySelector('.modal-dialog');
+                if (!dialog) return;
+
+                // Use header as drag handle; fallback to dialog
+                const handle = modalEl.querySelector('.modal-header') || dialog;
+
+                let dragging = false;
+                let startX = 0, startY = 0;          // pointer start
+                let startLeft = 0, startTop = 0;     // dialog rect start (px)
+                let startTx = 0, startTy = 0;        // current transform translate at drag start
+
+                // Parse current inline transform translate(x, y)
+                function currentTranslate() {
+                    const m = (dialog.style.transform || '').match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+                    return m ? { x: parseFloat(m[1]), y: parseFloat(m[2]) } : { x: 0, y: 0 };
+                }
+
+                function onDown(ev) {
+                    if (ev.target.closest('.btn, .btn-close')) return;
+
+                    dragging = true;
+
+                    const p = ev.touches ? ev.touches[0] : ev;
+                    startX = p.clientX;
+                    startY = p.clientY;
+
+                    // DO NOT change margins – prevents “jump left”
+                    const rect = dialog.getBoundingClientRect();
+                    startLeft = rect.left;
+                    startTop = rect.top;
+
+                    const t = currentTranslate();
+                    startTx = t.x; startTy = t.y;
+
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                    document.addEventListener('touchmove', onMove, { passive: false });
+                    document.addEventListener('touchend', onUp);
+
+                    document.body.classList.add('modal-dragging');
+                    ev.preventDefault();
+                    modalEl.classList.add('drag-active');
+                }
+
+                function onMove(ev) {
+                    if (!dragging) return;
+
+                    const p = ev.touches ? ev.touches[0] : ev;
+                    if (ev.cancelable) ev.preventDefault();
+
+                    const dx = p.clientX - startX;
+                    const dy = p.clientY - startY;
+
+                    const vw = window.innerWidth;
+                    const vh = window.innerHeight;
+                    const rect = dialog.getBoundingClientRect();
+                    const w = rect.width, h = rect.height;
+
+                    // Allow negative when content is larger than viewport
+                    const minLeft = Math.min(0, vw - w);
+                    const maxLeft = Math.max(0, vw - w);
+                    const minTop = Math.min(0, vh - h);
+                    const maxTop = Math.max(0, vh - h);
+
+                    let newLeft = clamp(startLeft + dx, minLeft, maxLeft);
+                    let newTop = clamp(startTop + dy, minTop, maxTop);
+
+                    const tx = startTx + (newLeft - startLeft);
+                    const ty = startTy + (newTop - startTop);
+
+                    dialog.style.transform = `translate(${tx}px, ${ty}px)`;
+                    modalEl.classList.add('drag-active');
+                }
+
+                function onUp() {
+                    if (!dragging) return;
+                    dragging = false;
+
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                    document.removeEventListener('touchmove', onMove);
+                    document.removeEventListener('touchend', onUp);
+                    document.body.classList.remove('modal-dragging');
+                    modalEl.classList.add('drag-active');
+                }
+
+                // Reset transform when the modal is closed
+                modalEl.addEventListener('hidden.bs.modal', () => {
+                    dialog.style.transform = '';
+                    dialog.style.margin = dialog.dataset._origMargin || '';
+                    delete dialog.dataset._origMargin;
+                    onUp();
+                });
+
+                // Bind once
+                handle.addEventListener('mousedown', onDown);
+                handle.addEventListener('touchstart', onDown, { passive: false });
+            }
+
+            // Enable for every modal when shown
+            document.addEventListener('shown.bs.modal', e => enableDraggable(e.target));
+        })();
+    </script>
+</body>
+</html>
