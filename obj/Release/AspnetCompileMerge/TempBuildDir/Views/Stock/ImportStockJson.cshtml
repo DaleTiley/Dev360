@@ -1,0 +1,219 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Import Stock via JSON";
+}
+
+<div class="container mt-1">
+    <h5 class="mb-3">Import Stock from Excel → JSON</h5>
+
+    <!-- Info Panel -->
+    <div class="alert alert-info small shadow-sm border border-light">
+        <i class="fas fa-info-circle me-2"></i>
+        Importing a stock file will overwrite all current stock records. Please ensure your file includes required columns like
+        <code>Product Code</code>, <code>Description</code>, <code>Units</code>, <code>Material Type</code> etc. Only .xlsx format is supported.
+    </div>
+
+    <!-- Warning if stock exists -->
+    @if (ViewBag.HasStock == true)
+    {
+        <div class="alert alert-warning small d-flex align-items-center pulse-highlight" role="alert">
+            <i class="fas fa-triangle-exclamation me-2"></i>
+            Stock records already exist. Importing again will override current data.
+        </div>
+    }
+
+    <!-- TempData messages -->
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <!-- Upload form -->
+    <form id="stockImportJsonForm" method="post" action="/Stock/ImportStockJson" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div class="card shadow-lg border border-light-subtle mb-4">
+            <div class="card-body">
+                <label for="file" class="form-label fw-semibold">Select Excel File (.xlsx)</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-file-excel"></i></span>
+                    <input type="file" name="jsonFile" id="file" class="form-control" accept=".xlsx" required autocomplete="off" />
+                </div>
+
+                @if (ViewBag.HasStock == true)
+                {
+                    <div class="alert alert-danger py-2 px-3 mt-3 mb-0 d-flex align-items-center gap-2 small shadow-sm" style="border: 1px dashed #dc3545;">
+                        <input class="form-check-input mt-0" type="checkbox" id="confirmOverride" style="border: solid thin black;"/>
+                        <label class="form-check-label" for="confirmOverride">
+                            I understand this will <strong>override existing stock records</strong>.
+                        </label>
+                    </div>
+                }
+
+                <button type="button" class="btn theme-button mt-3" id="validateFileBtn">Validate File</button>
+            </div>
+        </div>
+    </form>
+
+
+    <!-- Preview container -->
+    <div id="previewContainer" class="d-none">
+        <h6>File Preview (top 10 rows)</h6>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0 align-middle text-nowrap" id="previewTable" style="font-size: 0.75rem;">
+                <thead class="table-light"></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Validation Error Modal -->
+<div class="modal fade" id="validationErrorModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow border rounded-3">
+            <div class="modal-header bg-danger text-white py-2 px-3">
+                <h5 class="modal-title">Validation Failed</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center small">
+                <span id="validationErrorMessage">The uploaded file is missing required columns.</span>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button class="btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Import Modal -->
+<div class="modal fade" id="confirmImportModal" tabindex="-1" aria-labelledby="confirmImportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-dark text-white py-2 px-3">
+                <h5 class="modal-title" id="confirmImportModalLabel">Confirm Stock Import</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body small">
+                Proceed with importing stock?<br />
+                This will <strong>overwrite all existing stock records</strong>.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" id="confirmImportBtn">Yes, Import</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const validateBtn = document.getElementById("validateFileBtn");
+            const fileInput = document.getElementById("file");
+            const previewContainer = document.getElementById("previewContainer");
+            const previewTable = document.getElementById("previewTable");
+
+            validateBtn.addEventListener("click", function () {
+                const file = fileInput.files[0];
+                if (!file) {
+                    alert("Please select an Excel file first.");
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append("file", file);
+
+                showSpinner("Validating Excel file...");
+
+                fetch('/Stock/ValidateExcel', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        hideSpinner();
+                        if (data.valid) {
+                            populatePreviewTable(data.preview);
+                            previewContainer.classList.remove("d-none");
+
+                            // If stock exists, check if checkbox is present & checked
+                            const confirmCheckbox = document.getElementById("confirmOverride");
+                            if (confirmCheckbox && !confirmCheckbox.checked) {
+                                document.getElementById("validationErrorMessage").textContent =
+                                    "Please confirm that you understand existing stock will be overwritten.";
+                                const errorModal = new bootstrap.Modal(document.getElementById('validationErrorModal'));
+                                errorModal.show();
+                                return; // stop here
+                            }
+
+                            const confirmModal = new bootstrap.Modal(document.getElementById('confirmImportModal'));
+                            confirmModal.show();
+                        }
+                        else {
+                            // Show modal instead of alert
+                            const errorMsg = data.message || "The uploaded file could not be validated.";
+                            document.getElementById("validationErrorMessage").textContent = errorMsg;
+                            const errorModal = new bootstrap.Modal(document.getElementById('validationErrorModal'));
+                            errorModal.show();
+                        }
+                    })
+                    .catch(error => {
+                        hideSpinner();
+                        alert("Error during validation.");
+                        console.error(error);
+                    });
+            });
+
+            document.getElementById("confirmImportBtn").addEventListener("click", function () {
+                // Close modal and submit form
+                const modal = bootstrap.Modal.getInstance(document.getElementById('confirmImportModal'));
+                modal.hide();
+
+                // Optionally show spinner
+                showSpinner("Importing validated Excel file...");
+
+                // Submit the original form
+                document.getElementById("stockImportJsonForm").submit();
+            });
+
+            function populatePreviewTable(rows) {
+                const thead = previewTable.querySelector("thead");
+                const tbody = previewTable.querySelector("tbody");
+                thead.innerHTML = '';
+                tbody.innerHTML = '';
+
+                if (rows.length === 0) return;
+
+                const headers = Object.keys(rows[0]);
+                const headerRow = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+                thead.innerHTML = headerRow;
+
+                rows.forEach(row => {
+                    const rowHtml = '<tr>' + headers.map(h => `<td>${row[h]}</td>`).join('') + '</tr>';
+                    tbody.innerHTML += rowHtml;
+                });
+            }
+
+            // Optional: still include SignalR if you want to keep real-time updates
+            if ($.connection.progressHub) {
+                var progressHub = $.connection.progressHub;
+                progressHub.client.receiveProgress = function (message) {
+                    console.log("📦 StockImport update:", message);
+                    const overlay = document.getElementById("globalSpinnerOverlay");
+                    const text = document.getElementById("progressText");
+                    if (overlay && !overlay.classList.contains("show")) overlay.classList.add("show");
+                    if (text) text.textContent = message;
+                };
+                $.connection.hub.start().done(function () {
+                    console.log("SignalR connected (StockImport)");
+                });
+            } else {
+                console.warn("progressHub not found (StockImport)");
+            }
+        });
+    </script>
+}

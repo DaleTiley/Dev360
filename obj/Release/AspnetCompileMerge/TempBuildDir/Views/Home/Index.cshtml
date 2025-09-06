@@ -1,0 +1,164 @@
+@{
+    ViewBag.Title = "Dashboard";
+    ViewBag.BodyClass = "body-dash-img";
+}
+<style>
+    .main-content, .container {
+    margin-top: 0px!important;
+    }
+</style>
+<div class="container body-dash-img mt-0">
+    <div class="row align-items-start">
+        <!-- Dashboard Tiles (left) -->
+        <div class="col-md-6">
+            <div class="bg-white p-3 mb-3 rounded shadow-sm w-100">
+                <h5 class="mb-1">Excel Projects</h5>
+                <p class="small fst-italic text-muted mb-2">Import new Excel Project, view existing projects</p>
+                <div class="d-flex gap-3 mb-3 flex-wrap">
+                    <div class="card dashboard-card text-center position-relative" onclick="location.href='/Import/ListExcel'">
+                        <i class="fas fa-list dashboard-icon"></i>
+                        <div class="card-title">Manage Projects</div>
+                        @if (ViewBag.NewExcelQuotes != null && ViewBag.NewExcelQuotes > 0)
+                        {
+                            <span class="badge bg-danger text-white position-absolute top-0 end-0 m-2">
+                                +@ViewBag.NewExcelQuotes NEW
+                            </span>
+                        }
+                    </div>
+
+                    <div class="card dashboard-card text-center" onclick="location.href='@Url.Action("ImportExcel", "Import")'">
+                        <i class="fas fa-file-excel dashboard-icon"></i>
+                        <div class="card-title">Import New Project</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 1 -->
+            <!--<div class="bg-white p-3 mb-3 rounded shadow-sm w-100">
+                <h5 class="mb-1">JSON Projects</h5>
+                <p class="small fst-italic text-muted mb-2">Import new JSON Project, view existing projects</p>
+                <div class="d-flex gap-3 mb-3 flex-wrap">
+                    <div class="card dashboard-card text-center position-relative" onclick="location.href='/Import/ListJson'">
+                        <i class="fas fa-list dashboard-icon"></i>
+                        <div class="card-title">Manage Projects</div>
+                        @if (ViewBag.NewJsonQuotes != null && ViewBag.NewJsonQuotes > 0)
+                        {
+                            <span class="badge bg-danger text-white position-absolute top-0 end-0 m-2">
+                                +@ViewBag.NewJsonQuotes NEW
+                            </span>
+                        }
+                    </div>
+
+                    <div class="card dashboard-card text-center" onclick="location.href='@Url.Action("ImportJson", "Import")'">
+                        <i class="fas fa-file-import dashboard-icon"></i>
+                        <div class="card-title">Import New Project</div>
+                    </div>
+                </div>
+            </div>-->
+
+            <!-- Row 2 -->
+            <div class="bg-white p-3 mb-3 rounded shadow-sm w-100">
+                <h5 class="mb-1">Stock</h5>
+                <p class="small fst-italic text-muted mb-2">Management &amp; Admin References</p>
+                <div class="d-flex gap-3 mb-3 flex-wrap">
+                    <div class="card dashboard-card text-center" onclick="location.href='/Stock/Index'">
+                        <i class="fas fa-tasks dashboard-icon"></i>
+                        <div class="card-title">Stock Control</div>
+                    </div>
+
+                    <div class="card dashboard-card text-center" onclick="location.href='/Admin/Index'">
+                        <i class="fas fa-user-cog dashboard-icon"></i>
+                        <div class="card-title">Administration</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3 -->
+            <div class="bg-white p-3 mb-3 rounded shadow-sm w-100">
+                <h5 class="mb-1">Quote</h5>
+                <p class="small fst-italic text-muted mb-2">Generate a new quote from an existing project, manage product mappings</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <div class="card dashboard-card text-center" onclick="location.href='/Quote/index'">
+                        <i class="fas fa-file-invoice-dollar dashboard-icon"></i>
+                        <div class="card-title">Quote Management</div>
+                    </div>
+
+                    <div class="card dashboard-card text-center" onclick="location.href='/Admin/ProductMappings'">
+                        <i class="fas fa-link dashboard-icon"></i>
+                        <div class="card-title">Product Mapping</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Quick Insights -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 px-3 pt-3 pb-2" style="border-radius: 6px;">
+                <h6 class="text-dark fw-semibold mb-3 border-bottom pb-2 text-uppercase text-center" style="letter-spacing: 2px; border-color: #bbb;">
+                    Quick Insights
+                </h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-0" style="font-size: 0.8rem;">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <i class="fas fa-user-group text-info me-2 fa-fw"></i>
+                                    <span>Users</span>
+                                </td>
+                                <td class="text-end fw-bold">@ViewBag.UserCount</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <i class="fas fa-boxes text-primary me-2 fa-fw"></i>
+                                    <span>Stock Items</span>
+                                </td>
+                                <td class="text-end fw-bold">@ViewBag.StockCount</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <i class="fas fa-screwdriver-wrench text-danger me-2 fa-fw"></i>
+                                    <span>Assemblies</span>
+                                </td>
+                                <td class="text-end fw-bold">@ViewBag.AssemblyCount</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="py-1">
+                                    <hr class="my-1 border-secondary opacity-50">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <i class="fas fa-diagram-project text-success me-2 fa-fw"></i>
+                                    <span>JSON Projects</span>
+                                </td>
+                                <td class="text-end fw-bold">@ViewBag.ProjectCount</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <i class="fas fa-file-invoice text-warning me-2 fa-fw"></i>
+                                    <span>JSON Quotes</span>
+                                </td>
+                                <td class="text-end fw-bold">@ViewBag.QuoteCount</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <i class="fas fa-file-excel text-success me-2 fa-fw"></i>
+                                    <span>Excel Projects</span>
+                                </td>
+                                <td class="text-end fw-bold">@ViewBag.ExcelProjectCount</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <i class="fas fa-file-excel text-warning me-2 fa-fw"></i>
+                                    <span>Excel Quotes</span>
+                                </td>
+                                <td class="text-end fw-bold">@ViewBag.ExcelQuoteCount</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,31 @@
+@model MillinniumWebFixed.Models.GeneralQuoteData
+@{
+    ViewBag.Title = "Edit Quote Summary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Edit Quote Summary</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="form-horizontal">
+        @Html.HiddenFor(model => model.Id)
+
+        @foreach (var prop in ViewData.ModelMetadata.Properties.Where(p => p.PropertyName != "Id"))
+        {
+            <div class="form-group">
+                @Html.Label(prop.PropertyName, new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.Editor(prop.PropertyName)
+                    @Html.ValidationMessage(prop.PropertyName)
+                </div>
+            </div>
+        }
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </div>
+    </div>
+}

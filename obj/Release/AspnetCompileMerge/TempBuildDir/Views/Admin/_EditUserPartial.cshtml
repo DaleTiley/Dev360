@@ -1,0 +1,70 @@
+﻿@model MillinniumWebFixed.Models.AppUser
+
+@using (Html.BeginForm("EditUser", "Admin", FormMethod.Post, new { id = "editUserForm" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.Id)
+
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Username</label>
+        @Html.TextBoxFor(m => m.Username, new
+        {
+            @class = "form-control form-control-sm",
+            placeholder = "Enter username"
+        })
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Full Name</label>
+        @Html.TextBoxFor(m => m.FullName, new
+        {
+            @class = "form-control form-control-sm",
+            placeholder = "Full name"
+        })
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Email</label>
+        @Html.TextBoxFor(m => m.Email, new
+        {
+            @class = "form-control form-control-sm",
+            type = "email",
+            placeholder = "Email address"
+        })
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-semibold">User Level</label>
+        @Html.DropDownListFor(m => m.UserLevel,
+            new SelectList(new[] { "Admin", "Standard", "ReadOnly" }, Model.UserLevel),
+            new { @class = "form-select form-select-sm" })
+    </div>
+
+    <hr class="my-2" />
+    <small class="text-muted mb-2 d-block">Security</small>
+
+    <div class="mb-3">
+        <label class="form-label fw-semibold">New Password</label>
+        @Html.PasswordFor(m => m.PasswordHash, new
+        {
+            @class = "form-control form-control-sm",
+            placeholder = "Leave blank to keep existing password",
+            autocomplete = "new-password"
+        })
+        <small class="text-muted">Leave blank to keep existing password</small>
+    </div>
+
+    <div class="form-group ps-0 mb-3">
+        <div class="d-flex align-items-center gap-2">
+            @Html.CheckBoxFor(m => m.IsActive, new
+            {
+                @class = "form-check-input fs-6",
+                role = "switch",
+                id = "isActiveSwitch"
+            })
+            <label class="form-check-label mb-0" for="isActiveSwitch">User Active</label>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-dark w-100 mb-1">Save</button>
+}

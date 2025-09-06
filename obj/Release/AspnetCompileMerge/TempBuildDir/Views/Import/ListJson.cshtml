@@ -1,0 +1,209 @@
+@model IEnumerable<MillinniumWebFixed.ViewModels.ProjectListItemViewModel>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "JSON Quote Management";
+}
+
+@functions {
+    public string GetRelativeTime(DateTime createdAt)
+    {
+        if (createdAt == DateTime.MinValue)
+            return "Unknown";
+
+        if (createdAt.Date == DateTime.Now.Date)
+        {
+            var timespan = DateTime.Now - createdAt;
+            if (timespan.TotalMinutes < 1) return "Just now";
+            if (timespan.TotalMinutes < 60) return $"{(int)timespan.TotalMinutes} minutes ago";
+            if (timespan.TotalHours < 24) return $"{(int)timespan.TotalHours} hours ago";
+        }
+
+        return createdAt.ToString("yyyy-MM-dd HH:mm");
+    }
+
+    public bool IsNewQuote(DateTime createdAt)
+    {
+        return (DateTime.Now - createdAt).TotalMinutes <= 60;
+    }
+}
+
+<style>
+    .alert-success {
+        display: none;
+    }
+</style>
+
+<div class="container mt-0">
+    <h5 class="mb-4">JSON Project Management</h5>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div id="quoteProgressSpinner" class="mb-3" style="display: none;">
+        <div class="spinner-border text-primary me-2" role="status"></div>
+        Generating quote... Please wait.
+    </div>
+
+    <div id="quoteProgressLog" class="alert alert-secondary small p-2" style="max-height: 200px; overflow-y: auto; display:none;"></div>
+
+    <table id="quotesTable" class="table table-sm table-hover table-bordered display compact w-100" style="font-size:0.80rem;">
+        <thead class="table-dark">
+            <tr>
+                <th>Designer</th>
+                <th>Customer Name</th>
+                <th>Project Name</th>
+                <th>Fabricator</th>
+                <th class="text-center">Version</th>
+                <th>Created</th>
+                <th class="text-center">Quotes</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Data.Designer</td>
+                    <td>@item.Data.CustomerName</td>
+                    <td>@item.Data.ProjectName</td>
+                    <td>@item.Data.Fabricator</td>
+                    <td class="text-center">@item.Data.Version</td>
+                    <td>
+                        <i class="bi bi-clock text-success fw-bold"></i>
+                        @GetRelativeTime(item.Data.CreatedAt ?? DateTime.MinValue)
+                        @if (IsNewQuote(item.Data.CreatedAt ?? DateTime.MinValue))
+                        {
+                            <span class="badge bg-success ms-2">NEW</span>
+                        }
+                    </td>
+                    <td class="text-center">@item.QuotesGenerated</td>
+                    <td class="text-center">
+                        <a href="@Url.Action("DetailsJson", "Import", new { id = item.Data.Id })" class="btn btn-sm btn-dark btn-square" title="View Project">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="@Url.Action("Index", "Quote")" class="btn btn-sm btn-success btn-square" title="View Quotes">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </a>
+                        <a href="javascript:void(0);"
+                           class="btn btn-sm btn-danger btn-square"
+                           title="Generate Quote"
+                           onclick="showConfirmGenerateQuoteModal(@item.Data.Id)">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+
+    <a href="@Url.Action("ImportJson", "Import")" class="btn btn-sm btn-dark px-4">Go to JSON Import</a>
+</div>
+
+<div class="modal fade" id="confirmQuoteGenerationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-sm border-0">
+            <div class="modal-header bg-dark text-white py-2 px-3">
+                <h5 class="modal-title">Confirm Quote Generation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                Are you sure you want to generate a quote for this project?
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn theme-button" id="confirmGenerateQuoteBtn">Yes, Generate Quote</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="/signalr/hubs"></script>
+    <script>
+        // Spinner on View click
+        $(document).on('click', '.btn-view-project', function (e) {
+            e.preventDefault();
+            const url = $(this).attr("href");
+            showSpinner("Opening project...");
+            setTimeout(() => window.location.href = url, 1000);
+        });
+
+        const connection = $.hubConnection();
+        const quoteHub = connection.createHubProxy('quoteProgressHub');
+
+        quoteHub.on('receiveQuoteProgress', function (message) {
+            console.log("Received SignalR message:", message);
+            if (message.includes("Processing")) {
+                $('#quoteProgressSpinner').show();
+                $('#quoteProgressLog').show();
+            }
+            // handle log appending, etc.
+            if (message.includes("DONE")) {
+                $('#quoteProgressSpinner').hide();
+                $('#quoteProgressLog').show();
+            }
+
+            const $log = $('#quoteProgressLog');
+            if ($log.length > 0) {
+                $log.append('<div>' + message + '</div>');
+                $log.scrollTop($log[0].scrollHeight); // auto-scroll to bottom
+            }
+
+            // Optional: hide spinner on "DONE"
+            if (message.includes("DONE")) {
+                $('#quoteProgressSpinner').hide();
+            }
+        });
+
+        connection.start().done(function () {
+            console.log("QuoteProgressHub connected.");
+        });
+
+        let currentProjectId = null;
+        let quoteGenerationModal = null;
+
+        function showConfirmGenerateQuoteModal(projectId) {
+            currentProjectId = projectId;
+            const modalElement = document.getElementById('confirmQuoteGenerationModal');
+            quoteGenerationModal = new bootstrap.Modal(modalElement);
+            quoteGenerationModal.show();
+        }
+
+        document.getElementById('confirmGenerateQuoteBtn').addEventListener('click', function () {
+            if (currentProjectId !== null) {
+                // Hide the modal before redirecting
+                quoteGenerationModal.hide();
+
+                // Redirect after a short delay (to let modal fade out smoothly)
+                setTimeout(() => {
+                    window.location.href = `/Quote/CreateFromProject?projectId=${currentProjectId}`;
+                }, 100); // 300ms is the typical Bootstrap fade duration
+            }
+        });
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            $('#quotesTable').DataTable({
+                responsive: true,
+                autoWidth: false,
+                pageLength: 5,
+                lengthMenu: [5, 10, 25, 50, 100],
+                language: {
+                    search: "Filter:",
+                    lengthMenu: "Show _MENU_ quotes"
+                },
+                columnDefs: [
+                    { orderable: false, targets: -1 } // disable sort on actions column
+                ]
+            });
+        });
+    </script>
+}

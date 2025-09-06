@@ -1,0 +1,227 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\properties\\publishprofiles\\millroofingsa - web deploy.pubxml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|solutionrelative:properties\\publishprofiles\\millroofingsa - web deploy.pubxml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\views\\admin\\users.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|solutionrelative:views\\admin\\users.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\views\\admin\\adduser.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|solutionrelative:views\\admin\\adduser.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\views\\admin\\_productmappingform.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|solutionrelative:views\\admin\\_productmappingform.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\views\\admin\\_edituserpartial.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|solutionrelative:views\\admin\\_edituserpartial.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\views\\admin\\productmappings.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|solutionrelative:views\\admin\\productmappings.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\views\\admin\\edituser.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|solutionrelative:views\\admin\\edituser.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\views\\admin\\editproductmapping.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|solutionrelative:views\\admin\\editproductmapping.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|solutionrelative:web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|solutionrelative:views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\app_start\\bundleconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillinniumWebFixed.csproj|solutionrelative:app_start\\bundleconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "millroofingsa - Web Deploy.pubxml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Properties\\PublishProfiles\\millroofingsa - Web Deploy.pubxml",
+              "RelativeDocumentMoniker": "Properties\\PublishProfiles\\millroofingsa - Web Deploy.pubxml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Properties\\PublishProfiles\\millroofingsa - Web Deploy.pubxml",
+              "RelativeToolTip": "Properties\\PublishProfiles\\millroofingsa - Web Deploy.pubxml",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAjwB4AAACLAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003576|",
+              "WhenOpened": "2025-08-27T12:53:53.518Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "_ProductMappingForm.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\_ProductMappingForm.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\_ProductMappingForm.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\_ProductMappingForm.cshtml",
+              "RelativeToolTip": "Views\\Admin\\_ProductMappingForm.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-27T12:47:32.793Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "_EditUserPartial.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\_EditUserPartial.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\_EditUserPartial.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\_EditUserPartial.cshtml",
+              "RelativeToolTip": "Views\\Admin\\_EditUserPartial.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-27T12:47:30.905Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Users.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\Users.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\Users.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\Users.cshtml",
+              "RelativeToolTip": "Views\\Admin\\Users.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-27T12:47:29.031Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ProductMappings.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\ProductMappings.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\ProductMappings.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\ProductMappings.cshtml",
+              "RelativeToolTip": "Views\\Admin\\ProductMappings.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-27T12:47:27.34Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "EditUser.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\EditUser.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\EditUser.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\EditUser.cshtml",
+              "RelativeToolTip": "Views\\Admin\\EditUser.cshtml",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAAAAQAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-27T12:47:25.765Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "EditProductMapping.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\EditProductMapping.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\EditProductMapping.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\EditProductMapping.cshtml",
+              "RelativeToolTip": "Views\\Admin\\EditProductMapping.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-27T12:47:24.19Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AddUser.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\AddUser.cshtml",
+              "RelativeDocumentMoniker": "Views\\Admin\\AddUser.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Admin\\AddUser.cshtml",
+              "RelativeToolTip": "Views\\Admin\\AddUser.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-27T12:47:11.934Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Web.config",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Web.config",
+              "RelativeDocumentMoniker": "Web.config",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Web.config",
+              "RelativeToolTip": "Web.config",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2025-08-27T12:40:57.392Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAABgAAAAAAAAAAAAAACQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-27T12:38:17.003Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "BundleConfig.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\App_Start\\BundleConfig.cs",
+              "RelativeDocumentMoniker": "App_Start\\BundleConfig.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\App_Start\\BundleConfig.cs",
+              "RelativeToolTip": "App_Start\\BundleConfig.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-27T12:33:20.143Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

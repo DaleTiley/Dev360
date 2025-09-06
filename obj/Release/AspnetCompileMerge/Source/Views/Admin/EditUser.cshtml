@@ -1,0 +1,48 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@model MillinniumWebFixed.Models.AppUser
+@{
+    ViewBag.Title = Model.Id == 0 ? "Add User" : "Edit User";
+}
+
+<h5 class="mb-3">@ViewBag.Title</h5>
+
+@using (Html.BeginForm())
+{
+    @Html.HiddenFor(m => m.Id)
+
+    <div class="form-group mb-2">
+        @Html.LabelFor(m => m.Username)
+        @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "Enter username" })
+    </div>
+
+    <div class="form-group mb-2">
+        @Html.LabelFor(m => m.PasswordHash)
+        @Html.PasswordFor(m => m.PasswordHash, new { @class = "form-control", placeholder = "Enter password" })
+    </div>
+
+    <div class="form-group mb-2">
+        @Html.LabelFor(m => m.FullName)
+        @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", placeholder = "Full name" })
+    </div>
+
+    <div class="form-group mb-2">
+        @Html.LabelFor(m => m.Email)
+        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Email address", type = "email" })
+    </div>
+
+    <div class="form-group mb-2">
+        @Html.LabelFor(m => m.UserLevel)
+        @Html.DropDownListFor(m => m.UserLevel, new SelectList(
+            new[] { "Admin", "Standard", "ReadOnly" }), "-- Select Role --", new { @class = "form-control" })
+    </div>
+
+    <div class="form-group form-check mb-2">
+        @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input", id = "isActiveCheck" })
+        <label class="form-check-label" for="isActiveCheck">Active</label>
+    </div>
+
+    <button type="submit" class="btn btn-sm btn-dark px-4 mt-2">Save</button>
+}

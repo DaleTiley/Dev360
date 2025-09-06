@@ -1,0 +1,167 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - Millennium Roofing</title>
+
+    <!-- Core Styles -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.4.0/css/fixedHeader.bootstrap5.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="~/Content/site.css" rel="stylesheet" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+</head>
+
+<body class="@ViewBag.BodyClass">
+    <div class="d-flex flex-column min-vh-100">
+        @{
+            var usernameRaw = Session["user"]?.ToString();
+            var isAuthenticated = !string.IsNullOrWhiteSpace(usernameRaw);
+            var username = isAuthenticated ? char.ToUpper(usernameRaw[0]) + usernameRaw.Substring(1).ToLower() : "Guest";
+
+            var currentUrl = Request.RawUrl.ToLower();
+            if (!isAuthenticated && !currentUrl.Contains("/account/login"))
+            {
+                Response.Redirect("~/Account/Login");
+            }
+        }
+
+        @Html.Partial("_SpinnerOverlay")
+        @Html.Partial("_ToastMessage")
+
+        <!-- Top Nav -->
+        <nav class="navbar navbar-expand-lg px-4 py-2 navbar-dark">
+            <div class="container-fluid d-flex align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="toggle-button" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span class="navbar-text full-title d-none d-md-inline">Millennium Operations [@username]</span>
+                    <span class="navbar-text short-title d-inline d-md-none">Millennium</span>
+                </div>
+                <div class="navbar-right ms-auto">
+                    <img class="navbar-logo" src="https://mroofing.co.za/wp-content/uploads/2023/06/Logo.png" alt="Millennium Roofing Logo">
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sidebar + Main Content Row -->
+        <div class="d-flex flex-grow-1">
+            <!-- Sidebar -->
+            <div id="sidebarMenu" class="sidebar">
+                <!-- Dashboard -->
+                <a href="/Home/Index" class="@(Request.RawUrl == "/" || Request.RawUrl.ToLower().Contains("/home") ? "active" : "")">
+                    <i class="fas fa-home me-2"></i> Dashboard
+                </a>
+
+                <!-- Manual Quote -->
+                <hr class="text-white my-2" />
+                <a href="@Url.Action("ManualQuote", "ManualQuote")" class="@(Request.RawUrl.ToLower().Contains("/manualquote/manualquote") ? "active" : "")">
+                    <i class="fas fa-file-alt me-2"></i> Manual Quote
+                </a>
+
+                <a href="@Url.Action("ListManualQuotes", "ManualQuote")" class="@(Request.RawUrl.ToLower().Contains("/manualquote/listmanualquotes") ? "active" : "")">
+                    <i class="fas fa-list me-2"></i> Quote List
+                </a>
+
+                <a href="/Order/ListOrders" class="@(Request.RawUrl.ToLower().Contains("/order/listorders") ? "active" : "")">
+                    <i class="fas fa-shopping-cart me-2"></i> Orders
+                </a>
+
+                <a href="/Tender/ListTenders" class="@(Request.RawUrl.ToLower().Contains("/tender/listtenders") ? "active" : "")">
+                    <i class="fas fa-briefcase me-2"></i> Tenders
+                </a>
+
+                <!-- Projects -->
+                <hr class="text-white my-2" />
+                <a href="/Import/ImportExcel" class="@(Request.RawUrl.ToLower().Contains("/import/importexcel") ? "active" : "")">
+                    <i class="fas fa-file-import me-2"></i> Import Project
+                </a>
+                <a href="/Import/ListExcel" class="@(Request.RawUrl.ToLower().Contains("/import/listexcel") ? "active" : "")">
+                    <i class="fas fa-clipboard-list me-2"></i> Project List
+                </a>
+
+                <!-- Quotes -->
+                <a href="/Quote/Index" class="@(Request.RawUrl.ToLower().Contains("/quote/index") ? "active" : "")">
+                    <i class="fas fa-file-invoice-dollar me-2"></i> Project Quotes
+                </a>
+
+                <!-- Stock -->
+                <a href="/Stock/Index" class="@(Request.RawUrl.ToLower().Contains("/stock") ? "active" : "")">
+                    <i class="fas fa-boxes me-2"></i> Stock
+                </a>
+
+                <!-- Admin -->
+                <hr class="text-white my-2" />
+                @if (Session["userlevel"] != null && Session["userlevel"].ToString().ToLower() == "admin")
+                {
+                    <a href="/Admin/Index" class="@(Request.RawUrl.ToLower().Contains("/admin") ? "active" : "")">
+                        <i class="fas fa-user-cog me-2"></i> Admin
+                    </a>
+                }
+
+                <!-- Logout -->
+                <hr class="text-white my-2" />
+                <a href="/Account/Logout">
+                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                </a>
+            </div>
+
+
+            <!-- Main Content -->
+            <div class="main-content container py-3">
+                @RenderBody()
+            </div>
+        </div>
+
+        <div class="dashboard-logo-wrapper">
+            <img src="https://mroofing.co.za/wp-content/uploads/2023/06/Isolation-roof.png" alt="Logo" class="dashboard-logo" />
+        </div>
+
+        <footer id="bottom">
+            &copy;Millennium Roofing 2025
+        </footer>
+    </div>
+
+    <!-- Core libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.4.0/js/dataTables.fixedHeader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.4.3.min.js"></script>
+    <script src="/signalr/hubs"></script>
+
+    <!-- ✅ Move site.js ABOVE RenderSection -->
+    <script src="~/Scripts/site.js"></script>
+
+    @RenderSection("Scripts", required: false)
+
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebarMenu');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll("#sidebarMenu a[href]").forEach(link => {
+                link.addEventListener("click", function () {
+                    if (this.href !== window.location.href) {
+                        showSpinner("Navigating...");
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

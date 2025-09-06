@@ -1,0 +1,29 @@
+﻿@model MillinniumWebFixed.Models.ProductMapping
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group mb-2">
+        @Html.LabelFor(m => m.JsonItemName)
+        @Html.TextBoxFor(m => m.JsonItemName, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.JsonItemName)
+    </div>
+
+    <div class="form-group mb-2">
+        @Html.LabelFor(m => m.ProductDesc)
+        @Html.TextBoxFor(m => m.ProductDesc, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.ProductDesc)
+    </div>
+
+    <div class="form-group mb-3">
+        @Html.LabelFor(m => m.Notes)
+        @Html.TextBoxFor(m => m.Notes, new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Notes)
+    </div>
+
+    <button type="submit" class="btn theme-button">
+        <i class="fas fa-save"></i> Save Mapping
+    </button>
+    <a class="btn btn-secondary" href="@Url.Action("ProductMappings")">Cancel</a>
+}

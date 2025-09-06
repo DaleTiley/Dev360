@@ -1,0 +1,207 @@
+﻿@{
+    ViewBag.Title = "Import Data from JSON";
+    var importedId = TempData["ImportedId"] as int?;
+    var showModal = TempData.Peek("ShowImportSuccessModal") != null;
+}
+
+<div class="container mt-1">
+    <h5 class="mt-0 mb-2 fw-bold text-dark">Import Project Data from JSON</h5>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+        TempData["Message"] = null;
+
+        <script>
+            setTimeout(() => {
+                $('.alert-success').fadeOut('slow');
+            }, 4000);
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+        TempData["Error"] = null;
+    }
+
+    @using (Html.BeginForm("Upload", "Import", FormMethod.Post, new
+    {
+        enctype = "multipart/form-data",
+        id = "jsonImportForm",
+        @class = "no-spinner",
+        onsubmit = "return validateJsonUpload();"
+    }))
+    {
+        <div class="card shadow-lg border border-light-subtle mb-2">
+            <div class="card-body">
+                <label for="jsonFileInput" class="form-label fw-semibold">Select JSON File (.json)</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-file-upload"></i></span>
+                    <input type="file" id="jsonFileInput" name="jsonFile" class="form-control" required />
+                </div>
+                <button id="importBtn" type="submit" class="btn btn-dark mt-3">Import</button>
+            </div>
+        </div>
+    }
+
+    <!-- Progress Bar -->
+    <div id="progressContainer" class="mb-1">
+        <div class="progress">
+            <div id="progressBar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: 0%;">0%</div>
+        </div>
+
+        <!-- Status Message with Spinner -->
+        <div id="progressStatus" class="mt-1 text-muted d-flex align-items-center gap-2" style="visibility: hidden;">
+            <i id="progressIcon" class="fas fa-spinner fa-spin text-primary"></i>
+            <span id="progressText">Import in progress...</span>
+        </div>
+    </div>
+
+    <!-- Log Output Area -->
+    <div id="progressLog_new" class="mt-0 border rounded bg-white p-2"
+         style="font-size: 0.80rem; min-height: 10px; overflow-y: auto; max-height: 400px; display:block!important; color:black;">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-bars text-bg-warning" style="display:none;"></i>
+            <span style="font-size: 0.80rem;font-weight: bold; display:none;">IMPORT LOG STATUS</span>
+        </div>
+    </div>
+
+    <!-- Import Success Modal -->
+    <div class="modal fade" id="importSuccessModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import Complete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="$('#importSuccessModal').modal('hide');"></button>
+                </div>
+                <div class="modal-body">
+                    The import for <strong>@TempData["ImportedProjectName"]</strong> (version <strong>@TempData["ImportedVersion"]</strong>) was successful.
+                    <br /><br />Would you like to view the imported project?
+                </div>
+                <div class="modal-footer">
+                    <button id="viewImportedBtn" data-id="@TempData["ImportedId"]" class="btn btn-sm btn-dark">View Imported</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="$('#importSuccessModal').modal('hide');">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    try {
+        // Reset progress bar UI elements
+        function resetProgressBar() {
+            $('#progressBar').css('width', '0%').text('0%');
+            $('#progressStatus').css('visibility', 'hidden');
+            $('#progressText').text('Waiting to start...');
+            $('#progressLog').empty();
+        }
+
+        // Validate JSON file before submission --> jsonFileInput
+         function validateJsonUpload() {
+            const fileInput = document.getElementById('jsonFileInput');
+
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                showToast("Please select a JSON file before importing.", "danger");
+                return false;
+            }
+
+            const fileName = fileInput.files[0].name.toLowerCase();
+            if (!fileName.endsWith(".json")) {
+                showToast("Only .json files are allowed.", "danger");
+                return false;
+            }
+
+            return true;
+        }
+
+        $(function () {
+            // Initialize SignalR progress hub if available
+            if ($.connection.progressHub) {
+                const progressHub = $.connection.progressHub;
+
+                progressHub.client.receiveProgress = function (message) {
+                    if (message === "IMPORT_COMPLETE") {
+                        $('#importBtn')
+                            .prop('disabled', false)
+                            .text("Import")
+                            .removeClass('btn-secondary')
+                            .addClass('btn-dark');
+                        return;
+                    }
+
+                    $('#progressText').text(message);
+
+                    // Build new log entry
+                    const logEntry = $(`
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <span>${message}</span>
+                        </div>`);
+
+                    // Prepend and style
+                    $('#progressLog_new').prepend(logEntry);
+                    void logEntry[0].offsetWidth; // trigger animation
+                    logEntry.css('opacity', '1');
+
+                    // Alternate background rows
+                    $('#progressLog_new > div').each(function (i) {
+                        const bg = i % 2 === 0 ? '#ffffff' : '#f8f9fa';
+                        $(this).css('background-color', bg);
+                    });
+
+                    // Extract percentage and update bar
+                    const match = message.match(/(\d+)%/);
+                    if (match && match[1]) {
+                        const percent = parseInt(match[1]);
+                        $('#progressBar').css('width', percent + '%').text(percent + '%');
+                    }
+                };
+
+                $.connection.hub.start().done(function () {
+                    console.log("✅ SignalR connected");
+                });
+            } else {
+                console.warn("⚠️ progressHub not found");
+            }
+
+            // Handle form submit
+            $('#jsonImportForm').on('submit', function () {
+                if (!validateJsonUpload()) return false;
+
+                resetProgressBar();
+
+                const $submitBtn = $('#importBtn');
+                $submitBtn.prop('disabled', true)
+                    .text("Importing...")
+                    .removeClass('btn-dark')
+                    .addClass('btn-secondary');
+
+                $('#progressContainer').removeClass('d-none');
+                $('#progressStatus').css('visibility', 'visible');
+                $('#progressBar').css('width', '30%').text('Importing...');
+                $('#progressText').text('Import in progress...');
+            });
+
+            // Handle success modal "View Imported" button
+            $('#viewImportedBtn').click(function () {
+                const id = $(this).data('id');
+                if (id) {
+                    showSpinner("Loading project details...");
+                    window.location.href = '/Import/DetailsJson/' + id;
+                }
+            });
+
+            // Show modal if import success flag is set
+            @if (showModal && importedId.HasValue)
+            {
+                <text>$('#importSuccessModal').modal('show');</text>
+            }
+        });
+    } catch (err) {
+        console.error("❌ Fatal error in ImportJson script:", err);
+    }
+    </script>
+}

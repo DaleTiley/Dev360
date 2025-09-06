@@ -1,0 +1,342 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\controllers\\projects\\projectquotescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:controllers\\projects\\projectquotescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\views\\projects\\quote\\quoteedit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:views\\projects\\quote\\quoteedit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\services\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:services\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:views\\account\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\views\\projects\\partials\\_projectquotes.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:views\\projects\\partials\\_projectquotes.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\models\\projects\\quoteworkflowlog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:models\\projects\\quoteworkflowlog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|d:\\localdev\\millroofingv1\\millinniumwebfixed\\models\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:models\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\viewmodels\\projectquotecreatevm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:viewmodels\\projectquotecreatevm.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\controllers\\projects\\projectscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:controllers\\projects\\projectscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\models\\projects\\projectquote.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:models\\projects\\projectquote.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\views\\projects\\partials\\_projectedit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:views\\projects\\partials\\_projectedit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\views\\projects\\quote\\_quoteform.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:views\\projects\\quote\\_quoteform.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\controllers\\importcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:controllers\\importcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\models\\projects\\projectquotelineaggregate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:models\\projects\\projectquotelineaggregate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\viewmodels\\quotelineimportdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:viewmodels\\quotelineimportdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\views\\projects\\quote\\quotecreate.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:views\\projects\\quote\\quotecreate.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\views\\projects\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A284C901-2AD5-4B34-B3BB-520FD29FB3E4}|MillenniumWebFixed.csproj|solutionrelative:views\\projects\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 17,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Login.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Account\\Login.cshtml",
+              "RelativeDocumentMoniker": "Views\\Account\\Login.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Account\\Login.cshtml",
+              "RelativeToolTip": "Views\\Account\\Login.cshtml",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAACQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-09-06T11:56:33.743Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AccountController.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "Controllers\\AccountController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwBAAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-06T11:55:46.115Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "EmailService.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Services\\EmailService.cs",
+              "RelativeDocumentMoniker": "Services\\EmailService.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Services\\EmailService.cs",
+              "RelativeToolTip": "Services\\EmailService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwA4AAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-06T06:18:15.159Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "AppDbContext.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Models\\AppDbContext.cs",
+              "RelativeDocumentMoniker": "Models\\AppDbContext.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Models\\AppDbContext.cs",
+              "RelativeToolTip": "Models\\AppDbContext.cs",
+              "ViewState": "AgIAAF4AAAAAAAAAAAA0wGgAAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-05T15:38:59.444Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "QuoteWorkflowLog.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Models\\Projects\\QuoteWorkflowLog.cs",
+              "RelativeDocumentMoniker": "Models\\Projects\\QuoteWorkflowLog.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Models\\Projects\\QuoteWorkflowLog.cs",
+              "RelativeToolTip": "Models\\Projects\\QuoteWorkflowLog.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-05T15:34:59.01Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ProjectsController.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Controllers\\Projects\\ProjectsController.cs",
+              "RelativeDocumentMoniker": "Controllers\\Projects\\ProjectsController.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Controllers\\Projects\\ProjectsController.cs",
+              "RelativeToolTip": "Controllers\\Projects\\ProjectsController.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAuwBgAAAA2AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-04T10:15:00Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "QuoteLineImportDto.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\ViewModels\\QuoteLineImportDto.cs",
+              "RelativeDocumentMoniker": "ViewModels\\QuoteLineImportDto.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\ViewModels\\QuoteLineImportDto.cs",
+              "RelativeToolTip": "ViewModels\\QuoteLineImportDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-02T11:26:16.45Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "ImportController.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Controllers\\ImportController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ImportController.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Controllers\\ImportController.cs",
+              "RelativeToolTip": "Controllers\\ImportController.cs",
+              "ViewState": "AgIAAFEEAAAAAAAAAAAawGAEAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-02T11:16:04.075Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "ProjectQuoteLineAggregate.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Models\\Projects\\ProjectQuoteLineAggregate.cs",
+              "RelativeDocumentMoniker": "Models\\Projects\\ProjectQuoteLineAggregate.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Models\\Projects\\ProjectQuoteLineAggregate.cs",
+              "RelativeToolTip": "Models\\Projects\\ProjectQuoteLineAggregate.cs",
+              "ViewState": "AgIAABoAAAAAAAAAAIA9wCQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-02T09:25:13.07Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "_ProjectEdit.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Partials\\_ProjectEdit.cshtml",
+              "RelativeDocumentMoniker": "Views\\Projects\\Partials\\_ProjectEdit.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Partials\\_ProjectEdit.cshtml",
+              "RelativeToolTip": "Views\\Projects\\Partials\\_ProjectEdit.cshtml",
+              "ViewState": "AgIAAHAAAAAAAAAAAAAAAHkAAAAgAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-09-02T08:20:05.501Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "Create.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Create.cshtml",
+              "RelativeDocumentMoniker": "Views\\Projects\\Create.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Create.cshtml",
+              "RelativeToolTip": "Views\\Projects\\Create.cshtml",
+              "ViewState": "AgIAACkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-28T14:57:55.378Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "_QuoteForm.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Quote\\_QuoteForm.cshtml",
+              "RelativeDocumentMoniker": "Views\\Projects\\Quote\\_QuoteForm.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Quote\\_QuoteForm.cshtml",
+              "RelativeToolTip": "Views\\Projects\\Quote\\_QuoteForm.cshtml",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAgwFYAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-28T12:24:23.034Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ProjectQuotesController.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Controllers\\Projects\\ProjectQuotesController.cs",
+              "RelativeDocumentMoniker": "Controllers\\Projects\\ProjectQuotesController.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Controllers\\Projects\\ProjectQuotesController.cs",
+              "RelativeToolTip": "Controllers\\Projects\\ProjectQuotesController.cs",
+              "ViewState": "AgIAAIQCAAAAAAAAAAAgwOUCAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-28T10:48:08.937Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "QuoteEdit.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Quote\\QuoteEdit.cshtml",
+              "RelativeDocumentMoniker": "Views\\Projects\\Quote\\QuoteEdit.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Quote\\QuoteEdit.cshtml",
+              "RelativeToolTip": "Views\\Projects\\Quote\\QuoteEdit.cshtml",
+              "ViewState": "AgIAAKEBAAAAAAAAAAAswLcBAABUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-28T12:22:37.614Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "_ProjectQuotes.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Partials\\_ProjectQuotes.cshtml",
+              "RelativeDocumentMoniker": "Views\\Projects\\Partials\\_ProjectQuotes.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Partials\\_ProjectQuotes.cshtml",
+              "RelativeToolTip": "Views\\Projects\\Partials\\_ProjectQuotes.cshtml",
+              "ViewState": "AgIAAJAAAAAAAAAAAAAAAKkAAAALAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-28T10:20:40.87Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "ProjectQuote.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Models\\Projects\\ProjectQuote.cs",
+              "RelativeDocumentMoniker": "Models\\Projects\\ProjectQuote.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Models\\Projects\\ProjectQuote.cs",
+              "RelativeToolTip": "Models\\Projects\\ProjectQuote.cs",
+              "ViewState": "AgIAADAAAAAAAAAAAAAywD8AAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-28T03:54:53.625Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "QuoteCreate.cshtml",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Quote\\QuoteCreate.cshtml",
+              "RelativeDocumentMoniker": "Views\\Projects\\Quote\\QuoteCreate.cshtml",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\Views\\Projects\\Quote\\QuoteCreate.cshtml",
+              "RelativeToolTip": "Views\\Projects\\Quote\\QuoteCreate.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-08-27T13:45:50.17Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ProjectQuoteCreateVm.cs",
+              "DocumentMoniker": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\ViewModels\\ProjectQuoteCreateVm.cs",
+              "RelativeDocumentMoniker": "ViewModels\\ProjectQuoteCreateVm.cs",
+              "ToolTip": "D:\\LocalDev\\MillRoofingV1\\MillinniumWebFixed\\ViewModels\\ProjectQuoteCreateVm.cs",
+              "RelativeToolTip": "ViewModels\\ProjectQuoteCreateVm.cs",
+              "ViewState": "AgIAADgAAAAAAAAAAIA7wEcAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-27T13:43:34.62Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

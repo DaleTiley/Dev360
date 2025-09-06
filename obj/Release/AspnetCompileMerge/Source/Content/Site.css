@@ -1,0 +1,566 @@
+/* TEST MODAL FONTS*/
+.modal-content {
+    font-size: 0.875rem !important;
+}
+
+.modal-body,
+.modal-header,
+.modal-footer {
+    padding: 0.75rem 1rem !important;
+}
+
+.modal-title {
+    font-size: 1rem !important;
+}
+
+.modal-body label {
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+}
+
+.modal-body input,
+.modal-body select {
+    font-size: 0.85rem !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+.modal-backdrop.show {
+    background-color: rgba(0, 0, 0, 0.4);
+    /*    backdrop-filter: blur(3px);*/
+}
+
+.pulse-highlight {
+    animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0px rgba(220, 53, 69, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 12px 4px rgba(220, 53, 69, 0.6);
+    }
+
+    100% {
+        box-shadow: 0 0 0px rgba(220, 53, 69, 0);
+    }
+}
+
+/*.section-container {
+    background-color: #ffffff;*/ /* white background */
+    /*padding: 1rem;*/ /* spacing inside */
+    /*margin-bottom: 1.5rem;*/ /* spacing between sections */
+    /*border-radius: 0.5rem;*/ /* soft corners */
+    /*box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);*/ /* subtle shadow */
+/*}*/
+
+/* ===================
+   BASE LAYOUT
+=================== */
+.main-content,
+.container {
+    margin-top: 1.5rem; /* or padding-top if you prefer internal spacing */
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* allow full width control */
+    overflow-y: auto; /* ensure vertical scrolling works */
+    background-color: #a2a9ac !important;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.btn-square {
+    width: 40px;
+    text-align: center;
+    padding: 0.375rem 0; /* same vertical padding as .btn-sm */
+}
+
+
+/* ===================
+   BUTTONS / THEME STUFF
+=================== */
+/* Buttons*/
+.theme-button {
+    background-color: #001C2B;
+    color: white;
+    border: none;
+    font-size: 0.8rem; /* smaller text */
+    padding: 4px 10px; /* tighter padding */
+    border-radius: 4px; /* subtle rounding */
+    display: inline-flex; /* align icon and text nicely */
+    align-items: center; /* vertical center alignment */
+    gap: 4px; /* small gap between icon and text */
+}
+
+    .theme-button i {
+        font-size: 0.9rem; /* reduce icon size */
+    }
+
+    .theme-button:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+
+
+/* Table*/
+.table-dark-whole {
+    font-size:0.85rem !important;
+}
+.table-dark th {
+    background-color: #001C2B !important;
+}
+
+/* ===================
+   ACCORDION
+=================== */
+/* Remove blue focus ring and add subtle border to accordion toggle */
+.accordion-button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: 1px solid #dee2e6 !important; /* light gray border */
+}
+
+/* Optional: cleaner default state */
+.accordion-button {
+    border: 1px solid #dee2e6 !important;
+    border-radius: 4px !important;
+    padding: 0.75rem 1rem;
+}
+
+    .accordion-button:not(.collapsed) {
+        background-color: #a2a9ac !important; /* Light gray (Bootstrap neutral) */
+        color: black !important;
+        box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.125);
+    }
+
+.accordion-button {
+    border-radius: 0 !important;
+}
+
+.accordion-item {
+    border-radius: 0 !important;
+}
+
+/* ===================
+   NAVIGATION
+=================== */
+
+.navbar {
+    background-color: #001C2B;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-logo {
+    height: 48px;
+}
+
+.navbar-text {
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.navbar-right {
+    margin-left: auto;
+}
+
+.sidebar {
+    background-color: #001C2B;
+    color: white;
+    padding-top: 1rem;
+    font-size: 0.8rem;
+    min-height: 100%;
+    width: 175px;
+    overflow: hidden;
+    transition: width 0.3s ease, padding 0.3s ease;
+}
+
+.sidebar.collapsed {
+    width: 0;
+    padding: 0;
+}
+
+.sidebar a {
+    color: white;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    display: block;
+}
+
+.sidebar a:hover {
+    background-color: #003452;
+}
+
+.sidebar a.active {
+    background-color: #a2a9ac;
+    color: darkblue;
+    border-radius: 0px;
+}
+
+/* ===================
+   FOOTER
+=================== */
+
+footer#bottom {
+    height: 40px;
+    margin: 0;
+    line-height: 40px;
+    text-align: center;
+    font-size: 13px;
+    background-color: #001C2B;
+    color: white;
+}
+
+/* ===================
+   DASHBOARD TILES
+=================== */
+
+.dashboard-card {
+    width: 180px;
+    padding: 10px;
+    border-radius: 0 !important;
+    border: solid thin #212529;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    background-color: #6c757d;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    background-color: #001C2B;
+}
+
+.dashboard-card .badge {
+    font-size: 0.6rem;
+    padding: 4px 6px;
+    border-radius: 0 !important;
+}
+
+.dashboard-icon {
+    font-size: 1.2rem;
+    color: white;
+}
+
+.card-title {
+    margin-top: 0.75rem;
+    font-weight: 600;
+    font-size: 0.90rem;
+    color: white;
+}
+
+/* ===================
+   QUICK INSIGHTS
+=================== */
+
+.insights-table {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.insight-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 2px;
+}
+
+.insight-row i {
+    width: 20px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.insight-row .label {
+    flex-grow: 1;
+    font-size: 0.875rem;
+}
+
+/* ===================
+   SPINNER & TOASTS
+=================== */
+
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2000;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.spinner-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.spinner-border {
+    animation: spinner-spin 0.8s linear infinite;
+    border-width: 0.3em;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+@keyframes spinner-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Toasts */
+.toast {
+    border-radius: 0.5rem;
+    animation: slideDownFromTop 0.4s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes slideDownFromTop {
+    from { transform: translateY(-40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.toast.fade:not(.show) {
+    opacity: 0;
+    transform: translateY(60px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast.bg-success { border-left: 5px solid #28a745; }
+.toast.bg-danger  { border-left: 5px solid #dc3545; }
+.toast.bg-info    { border-left: 5px solid #0dcaf0; }
+
+#toastIcon { font-size: 1.2rem; }
+
+/* ===================
+   MISCELLANEOUS COMPONENTS
+=================== */
+
+/* Footer logo */
+.dashboard-logo-wrapper {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 0; /* Send to back */
+    pointer-events: none; /* Optional: avoids it catching clicks */
+}
+
+.dashboard-logo {
+    max-width: 200px;
+    opacity: 0.2; /* Gentle watermark feel */
+    z-index: 0;
+}
+
+/* ===================
+   STOCK TABLE COMPONENTS
+=================== */
+
+/* Child Rows */
+table.child-detail-table > thead > tr > th {
+    background-color: #6c757d;
+    color: white;
+    font-size: 13px;
+}
+
+.child-detail-table thead th {
+    font-weight: bold;
+    padding: 6px 10px;
+    border: 1px solid #dee2e6;
+}
+
+.child-detail-table tbody td {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.child-wrapper {
+    background-color: #838689; /* light gray */
+    padding: 0.75rem 1rem;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.05);
+}
+
+.child-fade {
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+}
+
+    .child-fade.show {
+        opacity: 1;
+    }
+
+#productTable tbody tr.shown + tr td {
+    padding: 0 !important;
+    border-top: none !important;
+    line-height: 0 !important; /* optionally collapse extra spacing */
+}
+
+/* ===================
+   DATA TABLES PAGING
+=================== */
+/* All pagination buttons */
+div.dataTables_wrapper div.dataTables_paginate ul.pagination .page-item .page-link {
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    color: #343a40 !important;
+    font-weight: 500;
+}
+
+/* Active page */
+div.dataTables_wrapper div.dataTables_paginate ul.pagination .page-item.active .page-link {
+    background-color: #343a40 !important;
+    border-color: #343a40 !important;
+    color: #f8f9fa !important;
+}
+
+/* Hover effect */
+div.dataTables_wrapper div.dataTables_paginate ul.pagination .page-item .page-link:hover {
+    background-color: #e9ecef !important;
+    color: #212529 !important;
+    border-color: #adb5bd !important;
+}
+
+/* Remove blue focus border after clicking (no outline or glow) */
+div.dataTables_wrapper div.dataTables_paginate ul.pagination .page-item .page-link:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Fix DataTables select and input spacing */
+.dataTables_filter input,
+.dataTables_length select {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.875rem !important;
+    height: auto !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 0.25rem !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+.dataTables_length select {
+    width: 75px !important; /* or try 80px if needed */
+    padding-right: 1.5rem !important; /* space for dropdown arrow */
+    font-size: 0.875rem !important;
+    height: auto !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 0.25rem !important;
+    box-shadow: none !important;
+}
+
+table.dataTable tbody td {
+    vertical-align: middle;
+}
+
+/* ===================
+   LOGIN SCREEN
+=================== */
+.slogan-line {
+    width: 95%;
+    max-width: 400px;
+    height: 1px;
+    border: none;
+    margin: 0.5rem auto;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent);
+}
+
+.slogan-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #f8f9fa;
+    text-align: center;
+    margin: 0.5rem auto;
+}
+
+.login-wrapper {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+}
+
+.login-left,
+.login-right {
+    flex: 1;
+    min-width: 0;
+}
+
+.login-left {
+    background: url('https://mroofing.co.za/wp-content/uploads/2023/06/Isolation-roof.png') no-repeat center center;
+    background-size: cover;
+    position: relative;
+}
+
+    .login-left::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.6); /* dark overlay */
+    }
+
+.login-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    text-align: center;
+    color: white;
+    width: 100%;
+}
+
+    .login-logo img {
+        height: 70px;
+        margin-bottom: 10px;
+    }
+
+    .login-logo h1 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #f8f9fa;
+    }
+
+.login-right {
+    background-color: #1c1e21;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: #f8f9fa;
+}
+
+#stockGridWrapper {
+    opacity: 0;
+    transition: opacity 0.5s ease-in;
+}
+
+    #stockGridWrapper.visible {
+        opacity: 1;
+    }

@@ -1,0 +1,33 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Admin";
+}
+
+<div class="container mt-1">
+    <h5 class="mb-4">Administration Panel</h5>
+
+    <!-- System Management -->
+    <h6 class="mb-2 text-muted">System Management</h6>
+    <div class="d-flex flex-wrap gap-4 mb-4">
+        <div class="col-md-2 mb-4">
+            <div class="card dashboard-card text-center" onclick="location.href='@Url.Action("Users", "Admin")'">
+                <i class="fas fa-users dashboard-icon"></i>
+                <div class="card-title">Manage Users</div>
+            </div>
+        </div>
+
+        <div class="col-md-2 mb-4">
+            <div class="card dashboard-card text-center" onclick="location.href='@Url.Action("Customers", "Admin")'">
+                <i class="fas fa-building dashboard-icon"></i>
+                <div class="card-title">Manage Customers</div>
+            </div>
+        </div>
+
+        <div class="col-md-2 mb-4">
+            <div class="card dashboard-card text-center" onclick="location.href='@Url.Action("Contacts", "Admin")'">
+                <i class="fas fa-address-book dashboard-icon"></i>
+                <div class="card-title">Manage Contacts</div>
+            </div>
+        </div>
+    </div>
+</div>

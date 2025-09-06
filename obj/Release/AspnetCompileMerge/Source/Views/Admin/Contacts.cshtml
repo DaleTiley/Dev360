@@ -1,0 +1,75 @@
+@model List<MillenniumWebFixed.Models.Contact>
+@{
+    ViewBag.Title = "Manage Contacts";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h4 class="mb-3">Manage Contacts</h4>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+<style>
+    table.dataTable td,
+    table.dataTable th {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    table.dataTable thead th {
+        background-color: #001C2B !important;
+        color: white !important;
+    }
+
+    table.dataTable tbody tr:nth-child(odd) {
+        background-color: #f7f9fc;
+    }
+</style>
+<button class="btn theme-button mb-2" onclick="openContactModal()">Add New Contact</button>
+
+<table class="table table-striped table-sm" id="contactTable">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Designation</th>
+            <th>Customer</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Email</td>
+                <td>@item.PhoneNumber</td>
+                <td>@item.Designation</td>
+                <td>@(item.Customer?.CustomerName)</td>
+                <td>
+                    <button class="btn btn-sm theme-button" onclick="editContact(@item.ContactId)">Edit</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@Html.Partial("_ContactModal", new MillenniumWebFixed.Models.Contact())
+<script src="~/Scripts/AdminContacts.js"></script>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('#contactTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                lengthChange: true,
+                lengthMenu: [[5, 10, 25, 50, 100], [5, 10, 25, 50, 100]]
+            });
+        });
+    </script>
+}

@@ -1,0 +1,71 @@
+﻿@model IEnumerable<MillinniumWebFixed.Models.StockItem>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Stock Inventory";
+}
+
+<div class="container mt-1">
+    <h5 class="mb-3">Stock Inventory</h5>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success">@TempData["Message"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="table-responsive small" style="font-size: 0.75rem;">
+        <table id="stockTable" class="table table-sm table-hover table-striped table-bordered display compact w-100">
+            <thead class="table-dark">
+                <tr class="align-middle text-nowrap">
+                    <th>Product</th>
+                    <th style="text-align:center;">Count</th>
+                    <th>Description</th>
+                    <th>Units</th>
+                    <th>Material</th>
+                    <th>Manufacturer</th>
+                    <th>Weight (kg)</th>
+                    <th>Thickness (mm)</th>
+                    <th>Width (mm)</th>
+                    <th>Length (mm)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var group in Model.GroupBy(x => x.Description))
+                {
+                    var first = group.First();
+                    <tr class="align-middle text-nowrap">
+                        <td>@first.ProductCode</td>
+                        <td style="text-align:center;">@group.Count()</td>
+                        <td style="white-space: normal;">@first.Description</td>
+                        <td>@first.Units</td>
+                        <td>@first.MaterialType</td>
+                        <td>@first.Manufacturer</td>
+                        <td>@first.WeightKg</td>
+                        <td>@first.ThicknessMM</td>
+                        <td>@first.WidthMM</td>
+                        <td>@first.LengthMM</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#stockTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, 100, 500, -1], [10, 25, 50, 100, 500, "All"]],
+                language: {
+                    search: "Filter:",
+                    lengthMenu: "Show _MENU_ entries"
+                }
+            });
+        });
+    </script>
+}

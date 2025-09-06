@@ -1,0 +1,85 @@
+﻿@model MillinniumWebFixed.Models.Quote
+@{
+    ViewBag.Title = "Quote Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-3">
+    <div class="mb-3">
+        <a href="@Url.Action("Index", "Quote")" class="btn btn-sm theme-button">
+            ← Back to Quotes
+        </a>
+
+        @if (!string.IsNullOrWhiteSpace(Model.QuotePath))
+        {
+            <a href="@Url.Content(Model.QuotePath)" class="btn btn-sm theme-button" target="_blank">
+                <i class="fas fa-download"></i> Download Quote
+            </a>
+        }
+    </div>
+
+    <h4>Quote @Model.QuoteRef</h4>
+    <div class="small text-muted mb-3 d-flex flex-wrap gap-3" style="font-size: 0.85rem;">
+        <div><strong>Project ID:</strong> @Model.ProjectId</div>
+        <div><strong>Created By:</strong> @(Session["FullName"]?.ToString() ?? "System")</div>
+        <div><strong>Created At:</strong> @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+    </div>
+    <hr />
+
+    @foreach (var version in Model.Versions.OrderBy(v => v.VersionNumber))
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                <strong>Version @version.VersionNumber</strong>
+                <span class="text-muted">(@version.Status)</span>
+                <span class="float-end">@version.CreatedAt.ToString("yyyy-MM-dd HH:mm")</span>
+            </div>
+            <div class="card-body">
+                @{ var tableId = $"versionTable_{version.Id}"; }
+
+                <table id="@tableId" class="table table-sm table-hover table-bordered display compact w-100" style="font-size:0.80rem;">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Item</th>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Unit</th>
+                            <th>Unit Cost</th>
+                            <th>Unit Sell</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in version.LineItems)
+                        {
+                            <tr>
+                                <td>@item.JsonItemName</td>
+                                <td>@item.ProductDesc</td>
+                                <td>@item.Quantity</td>
+                                <td>@item.Unit</td>
+                                <td>@string.Format("{0:F2}", item.UnitCost ?? 0)</td>
+                                <td>@string.Format("{0:F2}", item.UnitSell ?? 0)</td>
+                                <td>@string.Format("{0:F2}", item.Quantity * item.UnitSell ?? 0)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('table[id^="versionTable_"]').DataTable({
+                responsive: true,
+                pageLength: 10,
+                lengthMenu: [
+                    [5, 10, 25, 50, 100, -1],
+                    [5, 10, 25, 50, 100, "All"]
+                ],
+                order: [[0, 'asc']]
+            });
+        });
+    </script>
+}
