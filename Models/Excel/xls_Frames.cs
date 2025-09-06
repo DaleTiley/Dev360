@@ -1,0 +1,71 @@
+namespace MillenniumWebFixed.Models
+{
+    public class xls_Frames
+    {
+        public int Id { get; set; }
+        public int GeneralProjectDataId { get; set; }
+        public string Name { get; set; }
+        public string Label { get; set; }
+        public string Quantity_single_ply { get; set; }
+        public string Plies { get; set; }
+        public string Family { get; set; }
+        public string Type { get; set; }
+        public string Family_ID { get; set; }
+        public string Type_ID { get; set; }
+        public string Span_m { get; set; }
+        public string Pitch_degree { get; set; }
+        public string Pitch_TCL_degree { get; set; }
+        public string Pitch_TCR_degree { get; set; }
+        public string Center_mm { get; set; }
+        public string Actual_cube_m3 { get; set; }
+        public string Actual_cube_m3_Single { get; set; }
+        public string Stock_Cube_m3 { get; set; }
+        public string Stock_Cube_m3_Single { get; set; }
+        public string Connector_area_dm2 { get; set; }
+        public string Connector_area_dm2_Single { get; set; }
+        public string Connector_points { get; set; }
+        public string Splices { get; set; }
+        public string Price_per_frame_R { get; set; }
+        public string Parts { get; set; }
+        public string Total_parts { get; set; }
+        public string Production_case { get; set; }
+        public string Quote_group { get; set; }
+        public string Framing_zone { get; set; }
+        public string Production_set { get; set; }
+        public string Storey { get; set; }
+        public string Layout { get; set; }
+        public string Overall_span { get; set; }
+        public string Overall_height { get; set; }
+        public string Quant__roof_segments { get; set; }
+        public string Quant__ceiling_segments { get; set; }
+        public string Match_group { get; set; }
+        public string Match_group_master { get; set; }
+        public string Saw_set_up { get; set; }
+        public string Cutting_time_instance { get; set; }
+        public string Timber_count_single { get; set; }
+        public string Press_set_up { get; set; }
+        public string Pressing_time_instance { get; set; }
+        public string Press_count_single { get; set; }
+        public string Reductions_single { get; set; }
+        public string Housings_single { get; set; }
+        public string Holes_single { get; set; }
+        public string Attic { get; set; }
+        public string On_concrete { get; set; }
+        public string Nbr_of_supports { get; set; }
+        public string Has_stub_From { get; set; }
+        public string Has_stub_To { get; set; }
+        public string Overhang_From { get; set; }
+        public string Overhang_To { get; set; }
+        public string Transportation_Length { get; set; }
+        public string Transportation_Height { get; set; }
+        public string Frame_Part_Transportation_Sizes { get; set; }
+        public string Weight { get; set; }
+        public string Wall_panel_window_area { get; set; }
+        public string Wall_panel_door_area { get; set; }
+        public string Wall_panel_area_excl_openings { get; set; }
+        public string Wall_panel_assembly_time_h { get; set; }
+        public string Room_width { get; set; }
+        public string Room_height { get; set; }
+        public string Cassette_label { get; set; }
+    }
+}
