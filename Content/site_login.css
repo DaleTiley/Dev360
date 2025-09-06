@@ -1,0 +1,123 @@
+﻿body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+.login-wrapper {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.login-left {
+    flex: 1;
+    background: url('https://mroofing.co.za/wp-content/uploads/2023/06/Isolation-roof.png') no-repeat center center;
+    background-size: cover;
+    position: relative;
+}
+
+    .login-left::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.6); /* dark overlay */
+    }
+
+.login-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    text-align: center;
+    color: white;
+}
+
+    .login-logo img {
+        height: 100px;
+        margin-bottom: 10px;
+    }
+
+    .login-logo h1 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #f8f9fa;
+        letter-spacing: 1px;
+    }
+
+.login-right {
+    flex: 1;
+    background-color: #001C2B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #001C2B;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 400px;
+}
+
+    .login-box h3 {
+        color: #4db6cc;
+        margin-bottom: 1rem;
+    }
+
+.form-label {
+    color: #dee2e6;
+}
+
+.form-control {
+    background-color: #2a2d31;
+    border: 1px solid #495057;
+    color: #f8f9fa;
+}
+
+    .form-control:focus {
+        background-color: #2a2d31;
+        color: #fff;
+        border-color: #66f0d4;
+        box-shadow: 0 0 0 0.2rem rgba(102, 240, 212, 0.25);
+    }
+
+.btn-login {
+    background-color: #4db6cc;
+    color: #000;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    width: 100%;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+    .btn-login:hover {
+        background-color: white;
+    }
+
+    .btn-login:active {
+        background-color: #3aa2b5 !important; /* must be visible */
+        color: #000 !important;
+        border: none !important;
+        box-shadow: none !important;
+        transform: scale(0.98); /* optional */
+    }
+
+.text-sm {
+    font-size: 0.9rem;
+}
+
+.text-muted a {
+    color: #ccc;
+    text-decoration: underline;
+}
+
+.alert {
+    font-size: 0.9rem;
+}
